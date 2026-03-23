@@ -1,0 +1,12 @@
+ 0   tconst           5000 non-null   str    
+ 1   primaryTitle     5000 non-null   str    
+ 2   startYear        5000 non-null   int64  
+ 3   rank             5000 non-null   int64  
+ 4   averageRating    5000 non-null   float64
+ 5   numVotes         5000 non-null   int64  
+ 6   runtimeMinutes   5000 non-null   int64  
+ 7   directors        5000 non-null   str    
+ 8   writers          4974 non-null   str    
+ 9   genres           5000 non-null   str    
+ 10  IMDbLink         5000 non-null   str    
+ 11  Title_IMDb_Link  5000 non-null   str    
