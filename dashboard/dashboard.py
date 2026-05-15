@@ -1,17 +1,19 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, dcc, html, dash_table
+from dash import Dash, dcc, html, dash_table, Input, Output
 import dash
 import dash_bootstrap_components as dbc
+import eda
 
-df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
+df = pd.read_parquet('Projeto_PISI3_2026\Imdb_Movie_Dataset.parquet')
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
 total_colunas = df.shape[1]
 tamanho_memoria = f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -36,6 +38,7 @@ sidebar = html.Div(
         dbc.Nav(
             [
                 dbc.NavLink("Página Inicial", href="/", active="exact"),
+                dbc.NavLink("Exploratória (EDA)", href="/eda", active="exact"),
                 dbc.NavLink("Clusters", href="/cluster", active="exact", disabled=True),
                 dbc.NavLink("Random Forest", href="/random_forest", active="exact", disabled=True),
             ],
@@ -46,7 +49,7 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-content = html.Div([
+content_home = html.Div([
     html.H1("Visão Geral do Dataset IMDB", className="mb-4"),
     
     dbc.Row([
@@ -78,7 +81,28 @@ content = html.Div([
 
 ], style=CONTENT_STYLE)
 
-app.layout = html.Div([sidebar, content])
+app.layout = html.Div([dcc.Location(id="url"), sidebar, html.Div(id="page-content", style=CONTENT_STYLE) ])
+
+@app.callback(
+    Output("page-content", "children"),
+    [Input("url", "pathname")]
+)
+def render_page_content(pathname):
+    if pathname == "/":
+        return content_home
+    elif pathname == "/eda":
+        return eda.create_eda_layout(df)
+    
+    return html.Div(
+        [
+            html.H1("404: Not found", className="text-danger"),
+            html.Hr(),
+            html.P(f"O caminho {pathname} não foi reconhecido."),
+        ],
+        className="p-3 bg-light rounded-3",
+    )
+
+eda.register_eda_callbacks(app, df)
 
 if __name__ == '__main__':
     app.run(debug=True)
