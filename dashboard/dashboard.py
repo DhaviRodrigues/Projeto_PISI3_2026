@@ -5,8 +5,9 @@ from dash import Dash, dcc, html, dash_table, Input, Output
 import dash
 import dash_bootstrap_components as dbc
 import eda
+import xgboost_page
 
-df = pd.read_parquet('Projeto_PISI3_2026\Imdb_Movie_Dataset.parquet')
+df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
 total_colunas = df.shape[1]
@@ -22,13 +23,12 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
+    "backgroundColor": "#f8f9fa",
 }
 
 CONTENT_STYLE = {
-    "margin-left": "18rem",
-    "margin-right": "2rem",
-    "padding": "2rem 1rem",
+    "marginLeft": "9rem",
+    "marginRight": "2rem",
 }
 
 sidebar = html.Div(
@@ -39,8 +39,9 @@ sidebar = html.Div(
             [
                 dbc.NavLink("Página Inicial", href="/", active="exact"),
                 dbc.NavLink("Exploratória (EDA)", href="/eda", active="exact"),
-                dbc.NavLink("Clusters", href="/cluster", active="exact", disabled=True),
-                dbc.NavLink("Random Forest", href="/random_forest", active="exact", disabled=True),
+                dbc.NavLink("Clusterização", href="/cluster", active="exact", disabled=True),
+                dbc.NavLink("Regressão", href="/regression", active="exact", disabled=True),
+                dbc.NavLink("XGBoost", href="/xgboost_page", active="exact"),
             ],
             vertical=True,
             pills=True,
@@ -72,10 +73,26 @@ content_home = html.Div([
     html.Div([
         html.H4("Significado das Colunas Principais", className="mt-4"),
         html.Ul([
-            html.Li([html.B("revenue:"), " Receita bruta gerada pelo filme em dólares."]),
+html.Li([html.B("id:"), " Identificador único de cada filme no banco de dados."]),
+            html.Li([html.B("title:"), " Título oficial do filme em seu lançamento comercial."]),
             html.Li([html.B("vote_average:"), " Nota média dada pelos usuários (0-10)."]),
+            html.Li([html.B("vote_count:"), " Número total de votos e avaliações recebidas pelo filme."]),
+            html.Li([html.B("status:"), " Estado atual da produção (ex: Released, Post Production, Rumored)."]),
+            html.Li([html.B("release_date:"), " Data oficial de lançamento do filme."]),
+            html.Li([html.B("revenue:"), " Receita bruta gerada pelo filme em dólares."]),
+            html.Li([html.B("runtime:"), " Duração total do filme em minutos."]),
+            html.Li([html.B("adult:"), " Indicador booleano (True/False) para classificação indicativa estritamente adulta."]),
+            html.Li([html.B("budget:"), " Orçamento estimado de produção do filme em dólares."]),
+            html.Li([html.B("original_language:"), " Idioma original em que o filme foi gravado (código ISO, ex: 'en', 'es', 'pt')."]),
+            html.Li([html.B("original_title:"), " Título original do filme na língua nativa da produção."]),
+            html.Li([html.B("overview:"), " Sinopse ou resumo do enredo do filme."]),
             html.Li([html.B("popularity:"), " Índice numérico de popularidade calculado pelo algoritmo da plataforma."]),
-            html.Li([html.B("runtime:"), " Duração do filme em minutos."]),
+            html.Li([html.B("tagline:"), " Slogan, frase de efeito ou linha de chamada promocional do filme."]),
+            html.Li([html.B("genres:"), " Lista de gêneros associados ao filme separados por vírgula (ex: Action, Drama)."]),
+            html.Li([html.B("production_companies:"), " Companhias e estúdios responsáveis pela produção da obra."]),
+            html.Li([html.B("production_countries:"), " Países onde o filme foi produzido ou financiado."]),
+            html.Li([html.B("spoken_languages:"), " Idiomas falados e dublados disponíveis no corte do filme."]),
+            html.Li([html.B("keywords:"), " Palavras-chave e tags de metadados que descrevem temas do filme."]),
         ])
     ], className="mt-4")
 
@@ -92,6 +109,8 @@ def render_page_content(pathname):
         return content_home
     elif pathname == "/eda":
         return eda.create_eda_layout(df)
+    elif pathname == "/xgboost_page":
+        return xgboost_page.create_xgboost_layout()
     
     return html.Div(
         [
@@ -103,6 +122,7 @@ def render_page_content(pathname):
     )
 
 eda.register_eda_callbacks(app, df)
+xgboost_page.register_xgboost_callbacks(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
