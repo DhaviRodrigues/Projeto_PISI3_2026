@@ -6,6 +6,7 @@ import dash
 import dash_bootstrap_components as dbc
 import eda
 import xgboost_page
+import cluster_page  
 
 df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
 
@@ -39,7 +40,7 @@ sidebar = html.Div(
             [
                 dbc.NavLink("Página Inicial", href="/", active="exact"),
                 dbc.NavLink("Exploratória (EDA)", href="/eda", active="exact"),
-                dbc.NavLink("Clusterização", href="/cluster", active="exact", disabled=True),
+                dbc.NavLink("Clusterização", href="/cluster", active="exact"), 
                 dbc.NavLink("Regressão", href="/regression", active="exact", disabled=True),
                 dbc.NavLink("XGBoost", href="/xgboost_page", active="exact"),
             ],
@@ -73,7 +74,7 @@ content_home = html.Div([
     html.Div([
         html.H4("Significado das Colunas Principais", className="mt-4"),
         html.Ul([
-html.Li([html.B("id:"), " Identificador único de cada filme no banco de dados."]),
+            html.Li([html.B("id:"), " Identificador único de cada filme no banco de dados."]),
             html.Li([html.B("title:"), " Título oficial do filme em seu lançamento comercial."]),
             html.Li([html.B("vote_average:"), " Nota média dada pelos usuários (0-10)."]),
             html.Li([html.B("vote_count:"), " Número total de votos e avaliações recebidas pelo filme."]),
@@ -111,6 +112,8 @@ def render_page_content(pathname):
         return eda.create_eda_layout(df)
     elif pathname == "/xgboost_page":
         return xgboost_page.create_xgboost_layout()
+    elif pathname == "/cluster":
+        return cluster_page.create_cluster_layout()
     
     return html.Div(
         [
@@ -123,6 +126,7 @@ def render_page_content(pathname):
 
 eda.register_eda_callbacks(app, df)
 xgboost_page.register_xgboost_callbacks(app)
-
+cluster_page.register_cluster_callbacks(app)
+    
 if __name__ == '__main__':
     app.run(debug=True)
