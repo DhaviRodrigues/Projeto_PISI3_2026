@@ -6,8 +6,9 @@ import dash
 import dash_bootstrap_components as dbc
 import eda
 import xgboost_page
+import correlacao
 
-df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
+df = pd.read_parquet('./Imdb_Movie_Dataset.parquet')
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
 total_colunas = df.shape[1]
@@ -39,9 +40,10 @@ sidebar = html.Div(
             [
                 dbc.NavLink("Página Inicial", href="/", active="exact"),
                 dbc.NavLink("Exploratória (EDA)", href="/eda", active="exact"),
+                dbc.NavLink("Correlação", href="/correlacao", active="exact"),
                 dbc.NavLink("Clusterização", href="/cluster", active="exact", disabled=True),
                 dbc.NavLink("Regressão", href="/regression", active="exact", disabled=True),
-                dbc.NavLink("XGBoost", href="/xgboost_page", active="exact"),
+                dbc.NavLink("XGBoost", href="/xgboost_page", active="exact")
             ],
             vertical=True,
             pills=True,
@@ -111,7 +113,9 @@ def render_page_content(pathname):
         return eda.create_eda_layout(df)
     elif pathname == "/xgboost_page":
         return xgboost_page.create_xgboost_layout()
-    
+    elif pathname == "/correlacao":
+        return correlacao.create_correlation_layout()
+
     return html.Div(
         [
             html.H1("404: Not found", className="text-danger"),
@@ -123,6 +127,7 @@ def render_page_content(pathname):
 
 eda.register_eda_callbacks(app, df)
 xgboost_page.register_xgboost_callbacks(app)
+correlacao.register_correlation_callbacks(app, df)
 
 if __name__ == '__main__':
     app.run(debug=True)
