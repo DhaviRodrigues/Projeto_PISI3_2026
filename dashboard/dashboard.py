@@ -6,8 +6,10 @@ import dash
 import dash_bootstrap_components as dbc
 import eda
 import xgboost_page
+import classificacao_page 
 import cluster_page  
 import correlacao
+
 
 df = pd.read_parquet('./Imdb_Movie_Dataset.parquet')
 
@@ -29,7 +31,7 @@ SIDEBAR_STYLE = {
 }
 
 CONTENT_STYLE = {
-    "marginLeft": "9rem",
+    "marginLeft": "18rem", 
     "marginRight": "2rem",
 }
 
@@ -44,6 +46,7 @@ sidebar = html.Div(
                 dbc.NavLink("Clusterização", href="/cluster", active="exact"), 
                 dbc.NavLink("Correlação", href="/correlacao", active="exact"),
                 dbc.NavLink("Regressão", href="/regression", active="exact", disabled=True),
+                dbc.NavLink("Classificação (LightGBM)", href="/classificacao", active="exact"),
                 dbc.NavLink("XGBoost", href="/xgboost_page", active="exact")
             ],
             vertical=True,
@@ -114,6 +117,8 @@ def render_page_content(pathname):
         return eda.create_eda_layout(df)
     elif pathname == "/xgboost_page":
         return xgboost_page.create_xgboost_layout()
+    elif pathname == "/classificacao":                     
+        return classificacao_page.create_lgbm_layout()
     elif pathname == "/cluster":
         return cluster_page.create_cluster_layout()
     elif pathname == "/correlacao":
@@ -130,6 +135,7 @@ def render_page_content(pathname):
 
 eda.register_eda_callbacks(app, df)
 xgboost_page.register_xgboost_callbacks(app)
+classificacao_page.register_lgbm_callbacks(app)  
 cluster_page.register_cluster_callbacks(app)
 correlacao.register_correlation_callbacks(app, df)
 
