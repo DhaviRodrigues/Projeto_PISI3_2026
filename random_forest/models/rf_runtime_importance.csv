@@ -1,0 +1,136 @@
+Feature,Importance
+genre_mean,0.04186914356772481
+genres_Documentary,0.034180665473325426
+is_en,0.025767891142697653
+production_countries_India,0.0201559102248306
+genres_Drama,0.017103573025477662
+votes_per_year,0.012955067009167582
+vote_score_interact,0.01176571307532401
+movie_age,0.009871516168934254
+log_vote_count,0.009793688453798074
+release_year,0.00784996537193857
+vote_count,0.007086669749264548
+vote_average,0.006919425190393669
+overview_len,0.004851567910357906
+tagline_len,0.004308668560112514
+release_5_years,0.0042508176518958754
+genres_None,0.0037195616666349674
+genres_Animation,0.003608246307874189
+genres_Music,0.003556746806079908
+production_countries_None,0.003135703618209253
+genres_TV Movie,0.003008585478131489
+budget,0.0030018176143261693
+genres_Action,0.0026123405202714872
+production_countries_United States of America,0.0025227739838838644
+genres_History,0.0024685818557146472
+production_countries_Japan,0.0024116951154951713
+genres_Romance,0.0020147391585747143
+production_companies_None,0.00184863310244506
+genres_Family,0.0011961394100476514
+genres_Horror,0.0010777656450352982
+production_countries_Philippines,0.0009773968568133138
+genres_Comedy,0.0007882068110450387
+production_countries_Egypt,0.0006783504349429934
+genres_Crime,0.0006453959095884911
+production_countries_Germany,0.0006239047006202411
+is_short_keyword,0.0006012015163346624
+genres_Western,0.0004709136316017287
+production_countries_United Kingdom,0.000470588545702919
+production_countries_South Korea,0.0004557394981997398
+genres_Thriller,0.0003622986197806501
+production_countries_France,0.00030568524121761705
+production_companies_BBC,0.0002890019705592603
+production_companies_ARTE,0.00028324100360840654
+production_countries_Russia,0.0002826692756273929
+has_budget,0.00023832206762678025
+production_countries_Italy,0.00020860136463135518
+genres_Fantasy,0.00020243606865639728
+genres_Science Fiction,0.00018128917633529557
+genres_Adventure,0.00016714867271041612
+production_countries_China,0.0001619919927045283
+production_countries_Thailand,0.00015975485801049505
+production_companies_Universal Film Manufacturing Company,0.0001327617950378077
+genres_Mystery,0.00011316240236797342
+production_companies_Walt Disney Productions,0.00010974031034320197
+production_countries_Soviet Union,0.00010862993691661992
+genres_War,0.00010822811459292073
+production_companies_Metro-Goldwyn-Mayer,0.00010306052754008425
+production_countries_Argentina,8.638294728664537e-05
+production_companies_Nikkatsu Corporation,6.978152575015987e-05
+production_companies_TOHO,6.40655089671655e-05
+production_countries_Canada,6.397509055049017e-05
+production_countries_Austria,6.12359254104081e-05
+production_countries_Yugoslavia,5.9875857514926565e-05
+production_companies_Universal Pictures,5.710938818036529e-05
+production_countries_Poland,5.5892797272039145e-05
+production_companies_Columbia Pictures,5.5244395955454644e-05
+production_companies_Warner Bros. Pictures,5.434858429372835e-05
+production_countries_Indonesia,5.240837089533716e-05
+production_countries_Brazil,5.075942991472215e-05
+production_countries_Turkey,4.754581975477637e-05
+production_companies_Channel 4 Television,4.744978765038959e-05
+production_companies_Toei Company,4.589830953523167e-05
+production_countries_Switzerland,3.474194794012732e-05
+production_companies_Inc.,3.431831588044403e-05
+production_companies_Paramount,3.3569476622407066e-05
+production_countries_Hungary,3.219140698590574e-05
+production_companies_Monogram Pictures,2.9304119320930607e-05
+production_countries_Spain,2.8230138974249862e-05
+production_companies_WDR,2.569312286548361e-05
+production_companies_Shochiku,2.514365719745021e-05
+production_countries_Netherlands,2.4468435649571532e-05
+production_countries_Mexico,2.0550559603686427e-05
+production_countries_Taiwan,1.929662940351675e-05
+production_countries_Czech Republic,1.8241426734462708e-05
+production_countries_Hong Kong,1.779961241112981e-05
+production_countries_Malaysia,1.6869988754689022e-05
+production_countries_Australia,1.6563168099966347e-05
+production_countries_Sweden,1.6347774467035917e-05
+production_countries_Norway,1.6015824504873835e-05
+production_companies_20th Century Fox,1.533204657481222e-05
+production_companies_Ltd.,1.4387390888007551e-05
+production_countries_Belgium,1.4318310846729217e-05
+production_countries_Czechoslovakia,1.0926365513230898e-05
+production_companies_Hal Roach Studios,1.0894046437203652e-05
+production_companies_Canal+,1.0848472342261812e-05
+production_companies_Republic Pictures,1.0332320632838904e-05
+production_companies_ARTE France Cinéma,9.150462882410284e-06
+production_companies_DEFA,8.488792201593232e-06
+production_companies_HBO,7.042954951772708e-06
+production_companies_Fox Film Corporation,6.96194240076848e-06
+production_countries_Finland,6.24438566144752e-06
+production_countries_Chile,6.172971934116003e-06
+production_companies_RKO Radio Pictures,6.002598107954641e-06
+production_companies_Viva Films,5.985082556401995e-06
+production_countries_Israel,5.870858548149059e-06
+production_countries_Portugal,5.795361677805957e-06
+production_companies_SVT,4.68170082643293e-06
+production_companies_ONF | NFB,4.418436000973048e-06
+production_companies_RAI,3.85583989582744e-06
+production_companies_Mosfilm,3.7402725537741676e-06
+production_countries_Romania,3.7351518178183125e-06
+production_countries_Ireland,3.3405344582714303e-06
+production_companies_Daiei Film,3.059563173301072e-06
+production_companies_ZDF,2.9876406375266016e-06
+production_countries_Denmark,2.981116262315083e-06
+production_countries_East Germany,2.8932010230759934e-06
+production_countries_South Africa,2.82162325986664e-06
+production_countries_Greece,2.6298538728358762e-06
+production_countries_Iran,2.4770349964795113e-06
+production_companies_Gaumont,2.2137109884036444e-06
+production_companies_CNC,1.8588812109304023e-06
+production_companies_Lenfilm,1.8555082591404885e-06
+production_countries_Ukraine,1.6349675121166446e-06
+production_companies_BFI,1.329306916156637e-06
+production_companies_United Artists,1.3246742726883482e-06
+production_countries_New Zealand,8.15701474558656e-07
+production_companies_Shaw Brothers,7.343272635632418e-07
+production_companies_SF Studios,6.065353634530325e-07
+production_companies_Soyuzmultfilm,5.151867994291956e-07
+production_companies_Filmové studio Barrandov,5.070550610136002e-07
+production_companies_France 2 Cinéma,5.049471970048952e-07
+production_companies_ARD,5.015722599977591e-07
+production_companies_Film4 Productions,3.2612420888481615e-07
+production_companies_Pathé Frères,2.0406508302027729e-07
+production_companies_Walter Lantz Productions,0.0
+production_companies_Warner Bros. Cartoons,0.0

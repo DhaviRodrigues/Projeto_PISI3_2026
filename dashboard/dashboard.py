@@ -5,11 +5,10 @@ from dash import Dash, dcc, html, dash_table, Input, Output
 import dash
 import dash_bootstrap_components as dbc
 import eda
-import xgboost_page
 import classificacao_page 
+import regression_page      
 import cluster_page  
 import correlacao_page
-
 
 df = pd.read_parquet('./Imdb_Movie_Dataset.parquet')
 
@@ -27,7 +26,8 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
-    "backgroundColor": "#f8f9fa",
+    "backgroundColor": ""
+    "#f8f9fa",
 }
 
 CONTENT_STYLE = {
@@ -44,10 +44,9 @@ sidebar = html.Div(
                 dbc.NavLink("Página Inicial", href="/", active="exact"),
                 dbc.NavLink("Exploratória (EDA)", href="/eda", active="exact"),
                 dbc.NavLink("Clusterização", href="/cluster", active="exact"), 
-                dbc.NavLink("Correlação", href="/correlacao_page", active="exact"),
-                dbc.NavLink("Regressão", href="/regression", active="exact", disabled=True),
+                dbc.NavLink("Correlação", href="/correlacao", active="exact"),
+                dbc.NavLink("Regressão", href="/regression_page", active="exact"),
                 dbc.NavLink("Classificação (LightGBM)", href="/classificacao", active="exact"),
-                dbc.NavLink("XGBoost", href="/xgboost_page", active="exact")
             ],
             vertical=True,
             pills=True,
@@ -115,13 +114,13 @@ def render_page_content(pathname):
         return content_home
     elif pathname == "/eda":
         return eda.create_eda_layout(df)
-    elif pathname == "/xgboost_page":
-        return xgboost_page.create_xgboost_layout()
+    elif pathname == "/regression_page":
+        return regression_page.create_regression_layout()
     elif pathname == "/classificacao":                     
         return classificacao_page.create_lgbm_layout()
     elif pathname == "/cluster":
         return cluster_page.create_cluster_layout()
-    elif pathname == "/correlacao_page":
+    elif pathname == "/correlacao":
         return correlacao_page.create_correlation_layout()
 
     return html.Div(
@@ -134,7 +133,7 @@ def render_page_content(pathname):
     )
 
 eda.register_eda_callbacks(app, df)
-xgboost_page.register_xgboost_callbacks(app)
+regression_page.register_regression_callbacks(app)
 classificacao_page.register_lgbm_callbacks(app)  
 cluster_page.register_cluster_callbacks(app)
 correlacao_page.register_correlation_callbacks(app, df)
