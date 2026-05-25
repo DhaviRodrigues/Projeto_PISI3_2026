@@ -1,0 +1,136 @@
+Feature,Importance
+vote_count,0.195889
+genre_decade_vote_mean,0.16596384
+runtime,0.15125063
+is_en,0.08344088
+release_year,0.07028609
+genres_Horror,0.065773316
+votes_per_year,0.061818764
+log_vote_count,0.049866784
+genres_Drama,0.047614157
+production_countries_United States of America,0.0474876
+genres_Documentary,0.047179177
+tagline_len,0.03468858
+genre_vote_mean,0.030988025
+budget,0.030112002
+genres_TV Movie,0.026770493
+genres_Animation,0.02580025
+movie_age,0.024915261
+genres_Science Fiction,0.023774859
+genres_Action,0.023102377
+genres_Thriller,0.021536848
+production_countries_Italy,0.021297026
+genres_Romance,0.019722622
+production_countries_France,0.019114722
+production_countries_Japan,0.015621647
+overview_len,0.015447773
+production_countries_Spain,0.013031029
+genres_Music,0.011774356
+production_companies_None,0.011415329
+release_5_years,0.010727857
+genres_Comedy,0.008268192
+genres_Family,0.007876352
+production_countries_None,0.0074090147
+production_countries_South Korea,0.0068322043
+production_countries_Germany,0.0067664296
+genres_Adventure,0.006149358
+production_countries_United Kingdom,0.0059732
+production_countries_Mexico,0.0050605917
+genres_Mystery,0.004794093
+production_countries_Sweden,0.0044185775
+genres_None,0.0042664404
+genres_History,0.0039378954
+production_countries_Canada,0.0034590797
+genres_Crime,0.003426181
+production_countries_Russia,0.003370319
+production_countries_Soviet Union,0.0033409789
+production_companies_BBC,0.0033381586
+production_countries_Turkey,0.00324097
+production_countries_India,0.0027555414
+production_countries_Czechoslovakia,0.0024972537
+production_companies_Universal Pictures,0.0024493167
+production_countries_Brazil,0.0022742737
+production_companies_Walt Disney Productions,0.002247066
+genres_Fantasy,0.0020899945
+production_countries_Finland,0.0019834426
+production_companies_The Asylum,0.0018301316
+production_countries_Egypt,0.0018182233
+production_companies_Metro-Goldwyn-Mayer,0.0018170387
+production_countries_Indonesia,0.0018151728
+production_countries_Hong Kong,0.0017501577
+production_countries_China,0.0016921627
+production_countries_Portugal,0.0016045163
+production_countries_Romania,0.0015794606
+production_companies_RAI,0.0015679052
+has_budget,0.0015477072
+production_countries_Argentina,0.0015312962
+production_countries_Hungary,0.0014054239
+production_countries_Iran,0.001317264
+production_countries_Colombia,0.0012658604
+production_countries_Philippines,0.001093683
+production_countries_Poland,0.0010842202
+production_companies_Universal International Pictures,0.0010520872
+genres_Western,0.00096169644
+is_short_keyword,0.0009592605
+production_companies_Nikkatsu Corporation,0.00089073065
+production_companies_Walt Disney Pictures,0.00081444293
+production_countries_Denmark,0.0007995052
+production_countries_Thailand,0.00077614473
+production_companies_ARTE,0.00076144305
+production_companies_Paramount,0.00073833123
+production_companies_20th Century Fox,0.0007328705
+production_countries_Czech Republic,0.00070425903
+production_countries_Israel,0.00064520305
+production_companies_Columbia Pictures,0.0006093141
+production_companies_TOHO,0.00060685823
+production_countries_New Zealand,0.0005834821
+production_companies_Toei Company,0.0005819138
+production_companies_ZDF,0.00056115986
+production_companies_TF1 Films Production,0.00050635956
+production_countries_Ireland,0.000484925
+production_companies_Warner Bros. Pictures,0.0004447881
+genres_War,0.00043100864
+production_companies_Shochiku,0.00041218023
+production_companies_Leon Schlesinger Productions,0.00040293223
+production_companies_Warner Bros. Cartoons,0.00036772
+production_companies_ARD,0.00036761287
+production_companies_BBC Film,0.00035766704
+production_countries_Switzerland,0.0003424366
+production_companies_SF Studios,0.00034140478
+production_companies_Gaumont,0.00028744937
+production_countries_South Africa,0.00028466727
+production_companies_Shaw Brothers,0.00025201408
+production_countries_Austria,0.00024641812
+production_companies_Lifetime,0.00023676852
+production_companies_Warner Bros. Animation,0.00021062687
+production_companies_Reel One Entertainment,0.00020444366
+production_countries_Yugoslavia,0.00020145791
+production_companies_CJ Entertainment,0.00018973228
+production_countries_Greece,0.00017971081
+production_companies_ONF | NFB,0.00017126165
+production_countries_Netherlands,0.00014728925
+production_countries_Ukraine,0.00013961348
+production_companies_Nordisk Film Denmark,0.00012791657
+production_countries_Belgium,0.00011732831
+production_companies_TVE,0.000116477524
+production_countries_Taiwan,0.00011313455
+production_countries_Norway,0.00010622911
+production_companies_Lionsgate,9.940601e-05
+production_countries_Australia,9.806995e-05
+production_countries_Chile,7.7163495e-05
+production_companies_Mosfilm,6.534244e-05
+production_companies_Film4 Productions,6.310905e-05
+production_companies_Constantin Film,6.2413215e-05
+production_companies_United Artists,6.115879e-05
+production_companies_Canal+,5.753796e-05
+production_companies_CNC,5.635164e-05
+production_companies_Miramax,4.2941745e-05
+production_companies_France 3 Cinéma,3.8192116e-05
+production_companies_RAI Cinema,3.368208e-05
+production_companies_ARTE France Cinéma,3.311512e-05
+production_companies_StudioCanal,3.1138625e-05
+production_companies_RKO Radio Pictures,2.4935893e-05
+production_countries_Luxembourg,1.9866075e-05
+production_companies_Film i Väst,1.0966868e-05
+production_companies_New Line Cinema,5.2774094e-06
+production_companies_France 2 Cinéma,2.8289237e-06
