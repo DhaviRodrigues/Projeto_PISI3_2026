@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import gzip
 import re
+import ast
 from pathlib import Path
 from dash import dcc, html, Input, Output, State, dash_table
 import dash_bootstrap_components as dbc
@@ -28,6 +29,74 @@ def limpar_para_float(valor):
     valor_str = str(valor).replace(".", "").replace(",", ".")
     try: return float(valor_str) if valor_str else None
     except: return None
+
+def carregar_modelos():
+    global modelos_preditivos
+
+    caminhos = {
+        ("xgboost", "vote"): XGBOOST_MODELS_DIR / 'xgb_vote_average_model.pkl.gz',
+        ("xgboost", "runtime_shorts"): XGBOOST_MODELS_DIR / 'xgb_shorts_runtime_model.pkl.gz',
+        ("xgboost", "runtime_longs"): XGBOOST_MODELS_DIR / 'xgb_longs_runtime_model.pkl.gz',
+        ("random_forest", "vote"): RANDOM_FOREST_MODELS_DIR / 'random_forest_vote_average_model.pkl.gz',
+        ("random_forest", "runtime_shorts"): RANDOM_FOREST_MODELS_DIR / 'random_forest_runtime_shorts_model.pkl.gz',
+        ("random_forest", "runtime_longs"): RANDOM_FOREST_MODELS_DIR / 'random_forest_runtime_longs_model.pkl.gz'
+    }
+
+    for (alg, tipo), caminho in caminhos.items():
+        with gzip.open(str(caminho), 'rb') as f:
+            modelos_preditivos[alg][tipo] = pickle.load(f)
+
+    try:
+        with open(XGBOOST_MODELS_DIR / 'features_runtime_model.pkl', 'rb') as f:
+            modelos_preditivos["xgboost"]["features_rt"] = pickle.load(f)
+    except:
+        print("Aviso: Features de runtime XGBoost não carregadas")
+    
+    try:
+        with open(XGBOOST_MODELS_DIR / 'features_vote_average_model.pkl', 'rb') as f:
+            modelos_preditivos["xgboost"]["features_vote"] = pickle.load(f)
+    except:
+        print("Aviso: Features de vote XGBoost não carregadas")
+    
+    try:
+        with open(RANDOM_FOREST_MODELS_DIR / 'features_rf_vote_average_model.pkl', 'rb') as f:
+            modelos_preditivos["random_forest"]["features_vote"] = pickle.load(f)
+    except:
+        print("Aviso: Features de vote Random Forest não carregadas")
+    
+    try:
+        with open(RANDOM_FOREST_MODELS_DIR / 'features_runtime_model.pkl', 'rb') as f:
+            modelos_preditivos["random_forest"]["features_rt"] = pickle.load(f)
+    except:
+        print("Aviso: Features de runtime Random Forest não carregadas")
+
+carregar_modelos()
+
+def carregar_paises():
+    try:
+        df = pd.read_parquet(BASE_DIR / 'Imdb_Movie_Dataset.parquet')
+        paises_unicos = set()
+        
+        for countries_str in df['production_countries'].dropna():
+            try:
+                if isinstance(countries_str, str):
+                    if countries_str.startswith('['):
+                        countries_list = ast.literal_eval(countries_str)
+                    else:
+                        countries_list = [c.strip() for c in countries_str.split(',')]
+                    
+                    if isinstance(countries_list, list):
+                        paises_unicos.update(countries_list)
+                    else:
+                        paises_unicos.add(str(countries_list))
+            except:
+                pass
+        return sorted(list(paises_unicos))
+    except Exception as e:
+        print(f"Erro ao carregar países: {e}")
+        return ["United States of America", "United Kingdom", "France"]
+
+PAISES_OPCOES = [{"label": p, "value": p} for p in carregar_paises()]
 
 def create_regression_layout():
     return html.Div([
@@ -67,21 +136,25 @@ def create_regression_layout():
                 dbc.Input(id="reg-input-year", type="text", className="mb-3"),
                 html.Label("Gênero Principal:"),
                 dbc.Select(id="reg-input-genre", options=[{"label": g, "value": g} for g in ['Drama', 'Comedy', 'Action', 'Thriller', 'Horror', 'Romance', 'Adventure', 'Documentary']], value="Action", className="mb-3"),
-                html.Label("Contém palavra 'Short'?"),
-                dbc.Select(id="reg-input-isshort", options=[{"label": "Sim", "value": "1"}, {"label": "Não", "value": "0"}], value="0", className="mb-3"),
+                html.Label("País de Produção:"),
+                dbc.Select(id="reg-input-country", options=PAISES_OPCOES, value=PAISES_OPCOES[0]["value"] if PAISES_OPCOES else "United States of America", className="mb-3"),
             ], width=4),
             dbc.Col([
                 html.Label("Idioma é Inglês?"),
                 dbc.Select(id="reg-input-isen", options=[{"label": "Sim", "value": "1"}, {"label": "Não", "value": "0"}], value="1", className="mb-3"),
                 html.Div(id="bloco-input-nota-media", children=[
-                    html.Label("Nota Média (se Duração):"),
+                    html.Label("Nota Avaliação:"),
                     dbc.Input(id="reg-input-voteaverage-dinamico", type="text", className="mb-3"),
                 ], style={"display": "block"}),
                 html.Div(id="bloco-input-duracao", children=[
-                    html.Label("Duração Real (se Nota):"),
+                    html.Label("Duração do Filme:"),
                     dbc.Input(id="reg-input-runtime-dinamico", type="text", className="mb-3"),
                 ], style={"display": "none"}),
-            ], width=4)
+                html.Div(id="bloco-input-short", children=[
+                    html.Label("É um Filme Curta-Metragem?"),
+                    dbc.Select(id="reg-input-isshort", options=[{"label": "Sim", "value": "1"}, {"label": "Não", "value": "0"}], value="0", className="mb-3"),
+                ], style={"display": "none"}),
+            ], width=4),
         ]),
         
         dbc.Row([
@@ -111,13 +184,13 @@ def create_regression_layout():
 
 def register_regression_callbacks(app):
     @app.callback(
-        [Output("bloco-input-nota-media", "style"), Output("bloco-input-duracao", "style"), Output("reg-titulo-card-resultado", "children")],
+        [Output("bloco-input-nota-media", "style"), Output("bloco-input-duracao", "style"), Output("bloco-input-short", "style"), Output("reg-titulo-card-resultado", "children")],
         Input("seletor-modelo-reg", "value")
     )
     def alternar_interface(modelo_selecionado):
         if modelo_selecionado == "runtime":
-            return {"display": "block"}, {"display": "none"}, "Previsão de Duração"
-        return {"display": "none"}, {"display": "block"}, "Previsão de Nota Média"
+            return {"display": "block"}, {"display": "none"}, {"display": "block"}, "Previsão de Duração"
+        return {"display": "none"}, {"display": "block"}, {"display": "none"}, "Previsão de Nota Média"
 
     @app.callback(
         [Output("tabela-importancia-features", "data"), 
@@ -154,13 +227,15 @@ def register_regression_callbacks(app):
             if shap_matrix.ndim == 1:
                 shap_matrix = shap_matrix.reshape(1, -1)
             
-            for i, feat in enumerate(data['features'][:15]):
+            top_features_indices = df_top.index.tolist()
+            for idx_feat in top_features_indices:
+                feat = data['features'][idx_feat]
                 fig_sum.add_trace(go.Scatter(
-                    x=shap_matrix[idx, i], 
+                    x=shap_matrix[idx, idx_feat], 
                     y=[feat]*n, 
                     mode='markers', 
                     marker=dict(
-                        color=shap_matrix[idx, i],
+                        color=shap_matrix[idx, idx_feat],
                         colorscale='RdBu',
                         cmin=-limit,
                         cmax=limit,
@@ -179,10 +254,40 @@ def register_regression_callbacks(app):
         except Exception as e:
             print(f"ERRO CRÍTICO NO SHAP: {e}")
             return [], go.Figure(), go.Figure()
-
-    def processar_predicao(n_clicks, algoritmo, modelo, budget_raw, votecount_raw, year_raw, genre, is_en, vote_avg_din_raw, runtime_din_raw, is_short, overview_len_raw):
+        
+    @app.callback(
+        [Output("txt-resultado-reg", "children", allow_duplicate=True), 
+         Output("msg-erro-reg", "children"), 
+         Output("btn-calcular-reg", "disabled")],
+        Input("btn-calcular-reg", "n_clicks"),
+        [
+            State("seletor-algoritmo", "value"), 
+            State("seletor-modelo-reg", "value"),
+            State("reg-input-budget", "value"), 
+            State("reg-input-votecount", "value"),
+            State("reg-input-year", "value"), 
+            State("reg-input-genre", "value"),
+            State("reg-input-country", "value"),
+            State("reg-input-isen", "value"),
+            State("reg-input-voteaverage-dinamico", "value"), 
+            State("reg-input-runtime-dinamico", "value"),
+            State("reg-input-isshort", "value"), 
+            State("reg-input-overviewlen", "value")
+        ],
+        prevent_initial_call=True
+    )
+    def processar_predicao(n_clicks, algoritmo, modelo, budget_raw, votecount_raw, year_raw, genre, country, is_en, vote_avg_din_raw, runtime_din_raw, is_short, overview_len_raw):
+        
         if not n_clicks or n_clicks == 0: return "---", "", False
-            
+        
+        if (modelo == "runtime" and not modelos_preditivos[algoritmo]["runtime_longs"]) or \
+        (modelo == "vote_average" and not modelos_preditivos[algoritmo]["vote"]):
+            return "---", dbc.Alert("Erro: Modelo não encontrado na memória.", color="danger"), False
+        
+        features_key = "features_rt" if modelo == "runtime" else "features_vote"
+        if not modelos_preditivos[algoritmo][features_key]:
+            return "---", dbc.Alert(f"Erro: Features não carregadas.", color="danger"), False
+        
         try:
             erros_validacao = []
             budget = limpar_para_float(budget_raw) if budget_raw else 0.0
@@ -207,24 +312,21 @@ def register_regression_callbacks(app):
                     runtime_din = float(re.sub(r"[^\d.]", "", str(runtime_din_raw).replace(",", "."))) if runtime_din_raw else None
                 except: pass
                 if overview_len is None: erros_validacao.append("Tamanho da Sinopse")
-                if runtime_din is None: erros_validacao.append("Duração Real do Filme")
+                if runtime_din is None: erros_validacao.append("Duração do Filme")
 
             if erros_validacao:
                 return "---", dbc.Alert([html.Strong("Campos obrigatórios ausentes:"), html.Br(), f"{', '.join(erros_validacao)}"], color="danger", className="mb-2"), False
 
             if modelo == "vote_average" and int(vote_count) < 5:
-                return "---", dbc.Alert("Mínimo de 5 votos necessários para calcular este modelo.", color="warning", className="mb-2"), False
+                return "---", dbc.Alert("Mínimo de 5 votos necessários.", color="warning", className="mb-2"), False
 
             budget = min(budget, 500000000.0)
             vote_count = min(vote_count, 50000.0)
-            if year > 2026: year = 2026
-            elif year < 1880: year = 1880
-
+            year = max(1880, min(year, 2026))
             periodo_5_anos = (year // 5) * 5
             has_b = 1 if budget > 0 else 0
-            is_short_val = int(is_short) if (modelo == "runtime" and is_short is not None) else (1 if (runtime_din and runtime_din < 40) else 0)
+            is_short_val = int(is_short) if modelo == "runtime" else (1 if (runtime_din and runtime_din < 40) else 0)
             overview_len_val = int(overview_len) if (modelo == "vote_average" and overview_len is not None) else 250
-            tagline_len_val = 45
             movie_age_val = 2027 - year
             votes_per_year_val = vote_count / (movie_age_val + 1)
 
@@ -253,54 +355,57 @@ def register_regression_callbacks(app):
 
             if modelo == "runtime":
                 v_avg = float(vote_avg_din)
-                g_mean, gd_mean = 100.0, 100.0
-                log_v = np.log1p(vote_count)
-                vote_interact = v_avg * log_v
-                
-                data_dict = {
-                    'vote_average': v_avg, 'vote_count': vote_count, 'log_vote_count': log_v, 'release_year': year,
-                    'release_5_years': periodo_5_anos, 'movie_age': movie_age_val, 'budget': budget_inflacionado,
-                    'is_short_keyword': is_short_val, 'overview_len': overview_len_val, 'tagline_len': tagline_len_val,
-                    'genre_mean': g_mean, 'genre_decade_mean': gd_mean, 'vote_score_interact': vote_interact,
-                    'has_budget': has_b, 'is_en': int(is_en), 'votes_per_year': votes_per_year_val
-                }
+                data_dict = {'vote_average': v_avg, 'vote_count': vote_count, 'log_vote_count': np.log1p(vote_count), 
+                            'release_year': year, 'release_5_years': periodo_5_anos, 'movie_age': movie_age_val, 
+                            'budget': budget, 'is_short_keyword': is_short_val, 'overview_len': overview_len_val, 
+                            'tagline_len': 45, 'genre_mean': 100.0, 'genre_decade_mean': 100.0, 
+                            'vote_score_interact': v_avg * np.log1p(vote_count), 'has_budget': has_b, 
+                            'is_en': int(is_en), 'votes_per_year': votes_per_year_val}
                 
                 features = modelos_preditivos[algoritmo]["features_rt"]
                 for col in features:
-                    data_dict[col] = 1 if ("genres_" in col and genre.lower() in col.lower()) else data_dict.get(col, 0)
+                    if col not in data_dict:
+                        if col.startswith("genres_"):
+                            feat_val = col.replace("genres_", "")
+                            data_dict[col] = 1 if genre.lower() == feat_val.lower() else 0
+                        elif col.startswith("production_countries_"):
+                            feat_val = col.replace("production_countries_", "")
+                            data_dict[col] = 1 if country.lower() == feat_val.lower() else 0
+                        else:
+                            data_dict[col] = 0
                             
                 input_df = pd.DataFrame([data_dict]).reindex(columns=features, fill_value=0)
-                pred_log = modelos_preditivos[algoritmo]["runtime_shorts"].predict(input_df)[0] if is_short_val == 1 else modelos_preditivos[algoritmo]["runtime_longs"].predict(input_df)[0]
-                resultado_final = np.expm1(pred_log)
+                pred_val = modelos_preditivos[algoritmo]["runtime_shorts"].predict(input_df)[0] if is_short_val == 1 else modelos_preditivos[algoritmo]["runtime_longs"].predict(input_df)[0]
+                
+                if algoritmo == "random_forest":
+                    pred_val = np.expm1(pred_val)
                     
-                return html.Span(f"{resultado_final:.1f} minutos", className="text-primary fw-bold fs-5"), "", False
+                return html.Span(f"{pred_val:.1f} minutos", className="text-primary fw-bold fs-5"), "", False
                 
             else:
                 rt_val = float(runtime_din)
-                g_v_mean, gd_v_mean = 6.2, 6.2
-                log_v = np.log1p(vote_count)
-                runtime_log_votes = rt_val * log_v
-                budget_age = log_budget_val / (movie_age_val + 1)
-                
-                data_dict = {
-                    'runtime': rt_val, 'vote_count': vote_count, 'log_vote_count': log_v,
-                    'release_year': year, 'release_5_years': periodo_5_anos, 'movie_age': movie_age_val,
-                    'budget': budget_inflacionado, 'log_budget': log_budget_val, 'is_short_keyword': is_short_val, 
-                    'overview_len': overview_len_val, 'tagline_len': tagline_len_val,
-                    'has_overview': 1 if overview_len_val > 0 else 0, 'has_tagline': 1 if tagline_len_val > 0 else 0,
-                    'genre_vote_mean': g_v_mean, 'genre_decade_vote_mean': gd_v_mean,
-                    'has_budget': has_b, 'is_en': int(is_en), 'votes_per_year': votes_per_year_val,
-                    'runtime_log_votes_interact': runtime_log_votes, 'budget_age_interact': budget_age
-                }
-                
+                data_dict = {'runtime': rt_val, 'vote_count': vote_count, 'log_vote_count': np.log1p(vote_count),
+                            'release_year': year, 'release_5_years': periodo_5_anos, 'movie_age': movie_age_val,
+                            'budget': budget, 'log_budget': np.log1p(budget), 'is_short_keyword': is_short_val, 
+                            'overview_len': overview_len_val, 'tagline_len': 45, 'has_overview': 1, 'has_tagline': 1,
+                            'genre_vote_mean': 6.2, 'genre_decade_vote_mean': 6.2, 'has_budget': has_b, 
+                            'is_en': int(is_en), 'votes_per_year': votes_per_year_val}
+
                 features = modelos_preditivos[algoritmo]["features_vote"]
                 for col in features:
-                    data_dict[col] = 1 if ("genres_" in col and genre.lower() in col.lower()) else data_dict.get(col, 0)
-                            
+                    if col not in data_dict:
+                        if col.startswith("genres_"):
+                            feat_val = col.replace("genres_", "")
+                            data_dict[col] = 1 if genre.lower() == feat_val.lower() else 0
+                        elif col.startswith("production_countries_"):
+                            feat_val = col.replace("production_countries_", "")
+                            data_dict[col] = 1 if country.lower() == feat_val.lower() else 0
+                        else:
+                            data_dict[col] = 0
+
                 input_df = pd.DataFrame([data_dict]).reindex(columns=features, fill_value=0)
-                pred_nota = modelos_preditivos[algoritmo]["vote"].predict(input_df)[0]
-                
-                return html.Span(f"{pred_nota:.2f} / 10", className="text-success fw-bold fs-5"), "", False
-                
+                pred_val = modelos_preditivos[algoritmo]["vote"].predict(input_df)[0]
+                return html.Span(f"{pred_val:.2f} / 10", className="text-success fw-bold fs-5"), "", False
+
         except Exception as e:
             return "---", dbc.Alert(f"Erro no processamento: {str(e)}", color="danger", className="mb-2"), False
