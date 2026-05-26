@@ -10,7 +10,7 @@ import regression_page
 import cluster_page  
 import correlacao_page
 
-df = pd.read_parquet('./Imdb_Movie_Dataset.parquet')
+df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
 total_colunas = df.shape[1]
