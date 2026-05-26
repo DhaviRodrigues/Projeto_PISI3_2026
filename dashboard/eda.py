@@ -38,8 +38,10 @@ def create_eda_layout(df_cru):
     
     generos_disponiveis = sorted(df[df['primeiro_genero'] != 'Desconhecido']['primeiro_genero'].unique())
     
+
     return html.Div([
-        html.H2("A Teoria da Cauda Longa (Head/Tail Breaks)", className="mb-4 text-primary"),
+
+        html.H2("A Teoria da Cauda Longa (Head/Tail Breaks)", className="mb-4 text-primary", style={'marginTop': '40px'}),
         html.P("Exploração visual da profunda desigualdade na distribuição de receita, votos e produção cinematográfica.", className="text-muted mb-4"),
         
         # --- FILTROS ---
@@ -48,12 +50,15 @@ def create_eda_layout(df_cru):
                 dbc.Row([
                     dbc.Col([
                         html.Label("Intervalo de Anos:", className="fw-bold"),
-                        dcc.RangeSlider(
-                            id='filtro-ano',
-                            min=min_ano, max=max_ano, step=1, marks=None, 
-                            value=[ano_inicio_padrao, ano_fim_padrao], 
-                            tooltip={"placement": "bottom", "always_visible": True}
-                        )
+                        # --- ESPAÇAMENTO INTERNO PARA O SLIDER NÃO CORTAR O TOOLTIP ---
+                        html.Div([
+                            dcc.RangeSlider(
+                                id='filtro-ano',
+                                min=min_ano, max=max_ano, step=1, marks=None, 
+                                value=[ano_inicio_padrao, ano_fim_padrao], 
+                                tooltip={"placement": "bottom", "always_visible": True}
+                            )
+                        ], style={'paddingTop': '10px', 'paddingBottom': '15px'})
                     ], width=7),
                     dbc.Col([
                         html.Label("Filtrar por Género:", className="fw-bold"),
@@ -128,7 +133,13 @@ def create_eda_layout(df_cru):
                 dcc.Loading(dcc.Graph(id='grafico-ht-qualidade'))
             ], width=12)
         ], className="mb-5"),
-    ])
+    ], style={
+        'marginLeft': '260px',  
+        'paddingTop': '40px', 
+        'paddingBottom': '40px', 
+        'paddingLeft': '20px', 
+        'paddingRight': '20px'
+    })
 
 
 def register_eda_callbacks(app, df_cru):
@@ -238,7 +249,6 @@ def register_eda_callbacks(app, df_cru):
             df_boxplot['vote_average_imputed'] = df_boxplot['vote_average']
             
             if num_zeros > 0 and len(notas_disponiveis) > 0:
-                # Restaura a imputação proporcional aleatória que existia no seu script estático original
                 notas_imputadas = np.random.choice(notas_disponiveis, size=num_zeros)
                 df_boxplot.loc[mask_zero, 'vote_average_imputed'] = notas_imputadas
                 
