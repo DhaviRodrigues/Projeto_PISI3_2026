@@ -48,8 +48,10 @@ def create_eda_layout(df_preparado):
     
     generos_disponiveis = sorted(df_preparado[df_preparado['primeiro_genero'] != 'Desconhecido']['primeiro_genero'].unique())
     
+
     return html.Div([
-        html.H2("A Teoria da Cauda Longa (Head/Tail Breaks)", className="mb-4 text-primary"),
+
+        html.H2("A Teoria da Cauda Longa (Head/Tail Breaks)", className="mb-4 text-primary", style={'marginTop': '40px'}),
         html.P("Exploração visual da profunda desigualdade na distribuição de receita, votos e produção cinematográfica.", className="text-muted mb-4"),
         
         dbc.Card([
@@ -57,12 +59,15 @@ def create_eda_layout(df_preparado):
                 dbc.Row([
                     dbc.Col([
                         html.Label("Intervalo de Anos:", className="fw-bold"),
-                        dcc.RangeSlider(
-                            id='filtro-ano',
-                            min=min_ano, max=max_ano, step=1, marks=None, 
-                            value=[ano_inicio_padrao, ano_fim_padrao], 
-                            tooltip={"placement": "bottom", "always_visible": True}
-                        )
+                        # --- ESPAÇAMENTO INTERNO PARA O SLIDER NÃO CORTAR O TOOLTIP ---
+                        html.Div([
+                            dcc.RangeSlider(
+                                id='filtro-ano',
+                                min=min_ano, max=max_ano, step=1, marks=None, 
+                                value=[ano_inicio_padrao, ano_fim_padrao], 
+                                tooltip={"placement": "bottom", "always_visible": True}
+                            )
+                        ], style={'paddingTop': '10px', 'paddingBottom': '15px'})
                     ], width=7),
                     dbc.Col([
                         html.Label("Filtrar por Género:", className="fw-bold"),
