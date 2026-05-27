@@ -1,60 +1,34 @@
 import pandas as pd
-import numpy as np
-import joblib
 from pathlib import Path
 from dash import dcc, html, Input, Output, dash_table
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
+import plotly.express as px
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODELS_DIR = BASE_DIR / 'clusterizacao' / 'models'
-DATA_PATH = BASE_DIR / 'Imdb_Movie_Dataset.parquet'
-
-nomes_clusters = {
-    0: "3 - Grandes Blockbusters",
-    1: "1 - Baixo Consumo", 
-    2: "2 - Aclamados pelo Público",
-    3: "0 - Filmes Casuais" 
-}
+DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
 
 try:
-    model_kmeans = joblib.load(MODELS_DIR / 'kmeans_model.pkl')
-    model_scaler = joblib.load(MODELS_DIR / 'scaler_cluster.pkl')
-    
-    df_raw = pd.read_parquet(DATA_PATH)
-    
-    df_raw['release_year'] = pd.to_datetime(df_raw['release_date'], errors='coerce').dt.year
-    
-    features = ['popularity', 'vote_average', 'vote_count', 'runtime', 'budget', 'release_year']
-    df_clustering = df_raw[features].copy()
+    df_result = pd.read_parquet(DATA_PATH)
 
-    df_clustering = df_clustering[df_clustering['vote_count'] >= 50]
-    
-    cols_to_fix = ['runtime', 'budget', 'release_year']
-    for col in cols_to_fix:
-        df_clustering[col] = df_clustering[col].replace(0, np.nan)
-        df_clustering[col] = df_clustering[col].fillna(df_clustering[col].median())
-    
-    df_clustering['popularity'] = np.log1p(df_clustering['popularity'])
-    df_clustering['vote_count'] = np.log1p(df_clustering['vote_count'])
-    df_clustering['budget'] = np.log1p(df_clustering['budget'])
-    
-    X_scaled = model_scaler.transform(df_clustering)
-    
-    df_result = df_raw.loc[df_clustering.index].copy()
-    df_result['Cluster_ID'] = model_kmeans.predict(X_scaled)
-    df_result['Cluster'] = df_result['Cluster_ID'].map(nomes_clusters)
+    cols_numericas = ['popularity', 'vote_average', 'vote_count', 'budget', 'runtime', 'release_year']
+    for col in cols_numericas:
+        if col in df_result.columns:
+            df_result[col] = pd.to_numeric(df_result[col], errors='coerce')
 
+    clusters_unicos = sorted(df_result['Cluster'].unique().tolist()) if not df_result.empty else []
 except Exception as e:
-    print(f"Erro ao sincronizar dados com o modelo: {e}")
+    print(f"Erro ao carregar o ficheiro Parquet do cluster: {e}")
+    df_result = pd.DataFrame()
+    clusters_unicos = []
 
 
 def create_cluster_layout():
     return html.Div([
         dbc.Row([
             dbc.Col([
-                html.H2("Perfil dos Clusters (Médias Reais)", className="text-primary"),
-                html.P("Análise visual sincronizada com o modelo (Filtro: >= 50 votos)."),
+                html.H2("Perfil dos Clusters", className="text-primary"),
+                html.P("Análise visual sincronizada com o modelo (Filtro: >= 5 votos)."),
             ])
         ], className="mb-4"),
 
@@ -81,8 +55,8 @@ def create_cluster_layout():
                         "Explorador de Filmes por Cluster ",
                         dcc.Dropdown(
                             id='dropdown-cluster-selector',
-                            options=[{'label': v, 'value': v} for v in nomes_clusters.values()],
-                            value="3 - Grandes Blockbusters",
+                            options=[{'label': f"Cluster {v}", 'value': v} for v in clusters_unicos],
+                            value=clusters_unicos[0] if clusters_unicos else None,
                             clearable=False,
                             style={"width": "280px", "float": "right", "color": "black"}
                         )
@@ -93,6 +67,7 @@ def create_cluster_layout():
         ])
     ], style={"marginLeft": "18rem", "marginRight": "2rem", "padding": "2rem"})
 
+
 def register_cluster_callbacks(app):
     
     @app.callback(
@@ -101,57 +76,57 @@ def register_cluster_callbacks(app):
         [Input("dropdown-cluster-selector", "value")]
     )
     def update_charts(_):
+        if df_result.empty:
+            return go.Figure(), html.P("Sem dados disponíveis.")
+
         colunas_analise = ['popularity', 'vote_average', 'vote_count', 'budget', 'runtime', 'release_year']
         df_perfil = df_result.groupby('Cluster')[colunas_analise].mean().reset_index()
-        
         df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Total Votos', 'Orçamento', 'Duração (min)', 'Ano Lançamento']
         df_perfil = df_perfil.sort_values('Cluster')
-
-        fig = go.Figure()
-        metricas_plot = ['Popularidade', 'Nota Média', 'Total Votos', 'Orçamento', 'Duração (min)']
         
-        df_plot = df_perfil.copy()
-        for col in metricas_plot:
-            max_val = df_plot[col].max()
-            df_plot[f'{col}_norm'] = df_plot[col] / max_val if max_val > 0 else 0
-
-        cores = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA']
-        
-        for i, row in df_plot.reset_index(drop=True).iterrows():
-            valores_reais = [row[col] for col in metricas_plot]
-            valores_norm = [row[f'{col}_norm'] for col in metricas_plot]
-            
-            hover_text = [f"<b>{col}</b>: {val:,.2f}" for col, val in zip(metricas_plot, valores_reais)]
-            
-            fig.add_trace(go.Scatter(
-                x=metricas_plot,
-                y=valores_norm,
-                mode='lines+markers',
-                name=row['Cluster'], 
-                line=dict(width=4, color=cores[i % len(cores)]),
-                marker=dict(size=10),
-                text=hover_text,
-                hoverinfo="name+text"
-            ))
-
-        fig.update_layout(
-            yaxis=dict(showticklabels=False, title="Escala Proporcional ao Máximo"),
-            margin=dict(t=20, b=30),
-            hovermode="x unified",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
-        )
-
         df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Total Votos', 'Orçamento']].copy()
         df_tabela_show['Orçamento'] = df_tabela_show['Orçamento'].apply(lambda x: f"${x/1e6:.1f}M" if x > 0 else "$0.0M")
         df_tabela_show['Popularidade'] = df_tabela_show['Popularidade'].round(1)
         df_tabela_show['Nota Média'] = df_tabela_show['Nota Média'].round(2)
         df_tabela_show['Total Votos'] = df_tabela_show['Total Votos'].round(0)
 
-        tabela = dbc.Table.from_dataframe(
-            df_tabela_show, 
-            striped=True, bordered=True, hover=True
-        )
+        tabela = dbc.Table.from_dataframe(df_tabela_show, striped=True, bordered=True, hover=True)
+
+        sample_size_per_cluster = 700
+        sampled_indices = []
+        for cluster_id in df_result['Cluster'].unique():
+            cluster_df = df_result[df_result['Cluster'] == cluster_id]
+            sampled_indices.extend(cluster_df.sample(min(len(cluster_df), sample_size_per_cluster), random_state=42).index.tolist())
+
+        sampled_df = df_result.loc[sampled_indices].reset_index(drop=True)
         
+
+        sampled_df['Cluster_Cat'] = "Cluster " + sampled_df['Cluster'].astype(str)
+
+        fig = px.scatter(
+            sampled_df,
+            x='UMAP_1',
+            y='UMAP_2',
+            color='Cluster_Cat',
+            hover_name='title',
+            hover_data=['Cluster', 'vote_average', 'popularity', 'vote_count', 'genres'],
+            labels={
+                'UMAP_1': 'Componente UMAP 1', 
+                'UMAP_2': 'Componente UMAP 2',
+                'Cluster_Cat': 'Cluster'
+            },
+            color_discrete_sequence=px.colors.qualitative.G10
+        )
+
+        fig.update_layout(
+            margin=dict(t=20, b=30),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+            plot_bgcolor="white"
+        )
+    
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
+
         return fig, tabela
 
     @app.callback(
@@ -159,6 +134,9 @@ def register_cluster_callbacks(app):
         Input("dropdown-cluster-selector", "value")
     )
     def update_movie_table(cluster_selecionado):
+        if df_result.empty or cluster_selecionado is None:
+            return html.P("Sem dados disponíveis.")
+
         filmes = df_result[df_result['Cluster'] == cluster_selecionado].sort_values('popularity', ascending=False).head(50)
         
         df_disp = filmes[['title', 'popularity', 'vote_average', 'vote_count', 'runtime']].copy()
