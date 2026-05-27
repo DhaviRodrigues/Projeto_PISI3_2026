@@ -42,3 +42,4 @@ coverage.xml
 # Dataset files
 Imdb_Movie_Dataset.csv
 Imdb_Movie_Dataset.parquet
+reducer_umap.pkl
