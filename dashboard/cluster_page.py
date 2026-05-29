@@ -8,6 +8,13 @@ import plotly.express as px
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
 
+CLUSTER_NAMES = {
+    0: "Cluster 0 - Grandes Blockbusters",
+    1: "Cluster 1 - Mercado Intermediário",
+    2: "Cluster 2 - Cinema Independente",
+    3: "Cluster 3 - Baixo Orçamento"
+}
+
 try:
     df_result = pd.read_parquet(DATA_PATH)
 
@@ -46,24 +53,26 @@ def create_cluster_layout():
                 dbc.Card([
                     dbc.CardHeader("Resumo Estatístico Original"),
                     dbc.CardBody(id="tabela-medias-cluster")
-                ], className="shadow-sm h-100")
-            ], width=5),
-            
+                ], className="shadow-sm mb-4")
+            ], width=12)
+        ]),
+
+        dbc.Row([  
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader([
                         "Explorador de Filmes por Cluster ",
                         dcc.Dropdown(
                             id='dropdown-cluster-selector',
-                            options=[{'label': f"Cluster {v}", 'value': v} for v in clusters_unicos],
+                            options=[{'label': CLUSTER_NAMES.get(v, f"Cluster {v}"), 'value': v} for v in clusters_unicos],
                             value=clusters_unicos[0] if clusters_unicos else None,
                             clearable=False,
-                            style={"width": "280px", "float": "right", "color": "black"}
+                            style={"width": "350px", "float": "right", "color": "black"}
                         )
                     ]),
                     dbc.CardBody(id="tabela-filmes-filtrados")
                 ], className="shadow-sm h-100")
-            ], width=7)
+            ], width=12)
         ])
     ], style={"marginLeft": "18rem", "marginRight": "2rem", "padding": "2rem"})
 
@@ -81,14 +90,15 @@ def register_cluster_callbacks(app):
 
         colunas_analise = ['popularity', 'vote_average', 'vote_count', 'budget', 'runtime', 'release_year']
         df_perfil = df_result.groupby('Cluster')[colunas_analise].mean().reset_index()
-        df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Total Votos', 'Orçamento', 'Duração (min)', 'Ano Lançamento']
+        df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento', 'Duração (min)', 'Ano Lançamento']
         df_perfil = df_perfil.sort_values('Cluster')
         
-        df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Total Votos', 'Orçamento']].copy()
+        df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento']].copy()
+        df_tabela_show['Cluster'] = df_tabela_show['Cluster'].map(CLUSTER_NAMES)
         df_tabela_show['Orçamento'] = df_tabela_show['Orçamento'].apply(lambda x: f"${x/1e6:.1f}M" if x > 0 else "$0.0M")
         df_tabela_show['Popularidade'] = df_tabela_show['Popularidade'].round(1)
         df_tabela_show['Nota Média'] = df_tabela_show['Nota Média'].round(2)
-        df_tabela_show['Total Votos'] = df_tabela_show['Total Votos'].round(0)
+        df_tabela_show['Média de Votos'] = df_tabela_show['Média de Votos'].round(0)
 
         tabela = dbc.Table.from_dataframe(df_tabela_show, striped=True, bordered=True, hover=True)
 
@@ -101,7 +111,7 @@ def register_cluster_callbacks(app):
         sampled_df = df_result.loc[sampled_indices].reset_index(drop=True)
         
 
-        sampled_df['Cluster_Cat'] = "Cluster " + sampled_df['Cluster'].astype(str)
+        sampled_df['Cluster_Cat'] = sampled_df['Cluster'].map(CLUSTER_NAMES)
 
         fig = px.scatter(
             sampled_df,
@@ -113,7 +123,7 @@ def register_cluster_callbacks(app):
             labels={
                 'UMAP_1': 'Componente UMAP 1', 
                 'UMAP_2': 'Componente UMAP 2',
-                'Cluster_Cat': 'Cluster'
+                'Cluster_Cat': 'Perfil de Mercado'
             },
             color_discrete_sequence=px.colors.qualitative.G10
         )
