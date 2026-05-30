@@ -1,9 +1,10 @@
 import pandas as pd
 from pathlib import Path
-from dash import dcc, html, Input, Output, dash_table
+from dash import dcc, html, Input, Output, dash_table, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
+import numpy as np
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
@@ -71,7 +72,30 @@ def create_cluster_layout():
                         )
                     ]),
                     dbc.CardBody(id="tabela-filmes-filtrados")
-                ], className="shadow-sm h-100")
+                ], className="shadow-sm mb-4")
+            ], width=12)
+        ]),
+
+        dbc.Row([
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardHeader("Sistema de Recomendação Híbrido (K-Means e DBSCAN)", className="fw-bold bg-primary text-white"),
+                    dbc.CardBody([
+                        html.P("Digite o nome exato de um filme (em inglês) para buscar obras similares:"),
+                        dbc.Row([
+                            dbc.Col(
+                                dbc.Input(id="input-movie-title", type="text", placeholder="Ex: The Matrix, Inception, Titanic..."), 
+                                width=9
+                            ),
+                            dbc.Col(
+                                dbc.Button("Recomendar", id="btn-recommend", color="success", className="w-100"), 
+                                width=3
+                            )
+                        ]),
+                        html.Hr(),
+                        html.Div(id="recommendation-output", className="mt-3")
+                    ])
+                ], className="shadow-sm mb-4")
             ], width=12)
         ])
     ], style={"marginLeft": "18rem", "marginRight": "2rem", "padding": "2rem"})
@@ -159,3 +183,71 @@ def register_cluster_callbacks(app):
             style_cell={'textAlign': 'left', 'padding': '10px'},
             style_header={'backgroundColor': '#f8f9fa', 'fontWeight': 'bold'}
         )
+    
+    @app.callback(
+        Output("recommendation-output", "children"),
+        Input("btn-recommend", "n_clicks"),
+        State("input-movie-title", "value")
+    )
+    def generate_recommendations(n_clicks, titulo):
+        if not n_clicks or not titulo:
+            return html.Div()
+
+        filme_exato = df_result[df_result['title'].str.lower() == titulo.lower()]
+        
+        if filme_exato.empty:
+            return html.Div(f"Não encontramos o filme '{titulo}'. Verifique a ortografia (nome em inglês).", className="text-danger fw-bold")
+        
+        filme_alvo = filme_exato.iloc[0]
+        nome_oficial = filme_alvo['title']
+
+        x_alvo = filme_alvo['UMAP_1']
+        y_alvo = filme_alvo['UMAP_2']
+        
+        cluster_k = filme_alvo['Cluster']
+        cluster_db = filme_alvo['cluster_dbscan']
+        
+        recomendacoes_finais = []
+        origens = []
+
+        def buscar_vizinhos(df_filtrado, limite):
+            distancias = np.sqrt((df_filtrado['UMAP_1'] - x_alvo)**2 + (df_filtrado['UMAP_2'] - y_alvo)**2)
+            df_temp = df_filtrado.copy()
+            df_temp['distancia_real'] = distancias
+            return df_temp.sort_values('distancia_real', ascending=True).head(limite)['title'].tolist()
+
+        if cluster_db != -1:
+            df_dbscan = df_result[(df_result['cluster_dbscan'] == cluster_db) & (df_result['title'] != nome_oficial)]
+            recs_dbscan = buscar_vizinhos(df_dbscan, 5)
+            recomendacoes_finais.extend(recs_dbscan)
+            origens.extend(["DBSCAN"] * len(recs_dbscan))
+
+        vagas_sobrando = 5 - len(recomendacoes_finais)
+        
+        if vagas_sobrando > 0:
+            df_kmeans = df_result[
+                (df_result['Cluster'] == cluster_k) & 
+                (df_result['title'] != nome_oficial) & 
+                (~df_result['title'].isin(recomendacoes_finais))
+            ]
+            recs_kmeans = buscar_vizinhos(df_kmeans, vagas_sobrando)
+            recomendacoes_finais.extend(recs_kmeans)
+            origens.extend(["K-Means"] * len(recs_kmeans))
+
+        if not recomendacoes_finais:
+            return html.Div("Nenhum filme similar encontrado.", className="text-warning")
+
+        list_items = []
+        for filme, origem in zip(recomendacoes_finais, origens):
+            badge_color = "success" if origem == "DBSCAN" else "info"
+            list_items.append(
+                dbc.ListGroupItem([
+                    html.Span(filme, className="fw-bold"),
+                    dbc.Badge(f"via {origem}", color=badge_color, className="ms-2")
+                ], className="d-flex justify-content-between align-items-center")
+            )
+            
+        return html.Div([
+            html.H5(f"Recomendações por Similaridade Real para: {nome_oficial}", className="text-primary mb-3 fw-bold"),
+            dbc.ListGroup(list_items, className="shadow-sm")
+        ])
