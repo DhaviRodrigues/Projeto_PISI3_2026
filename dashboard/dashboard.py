@@ -11,6 +11,7 @@ import cluster_page
 import correlacao_page
 
 df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
+df_preparado = eda.preparar_dados(df)
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
 total_colunas = df.shape[1]
@@ -113,7 +114,7 @@ def render_page_content(pathname):
     if pathname == "/":
         return content_home
     elif pathname == "/eda":
-        return eda.create_eda_layout(df)
+        return eda.create_eda_layout(df_preparado)
     elif pathname == "/regression_page":
         return regression_page.create_regression_layout()
     elif pathname == "/classificacao":                     
@@ -132,7 +133,7 @@ def render_page_content(pathname):
         className="p-3 bg-light rounded-3",
     )
 
-eda.register_eda_callbacks(app, df)
+eda.register_eda_callbacks(app, df_preparado)
 regression_page.register_regression_callbacks(app)
 classificacao_page.register_lgbm_callbacks(app)  
 cluster_page.register_cluster_callbacks(app)
