@@ -21,7 +21,7 @@ def preparar_dados(df):
             .str.strip()
         )
         df_work['primeiro_genero'] = df_work['primeiro_genero'].replace({'nan': 'Desconhecido', 'None': 'Desconhecido', '': 'Desconhecido'})
-        
+
     if 'primeiro_pais' not in df_work.columns:
         df_work['primeiro_pais'] = (
             df_work['production_countries']
@@ -32,6 +32,20 @@ def preparar_dados(df):
             .str.strip()
         )
         df_work['primeiro_pais'] = df_work['primeiro_pais'].replace({'nan': 'Desconhecido', 'None': 'Desconhecido', '': 'Desconhecido'})
+
+    if 'genres_list' not in df_work.columns:
+        def _clean_genres(raw):
+            items = [item.strip() for item in str(raw).replace("[", "").replace("]", "").replace("'", "").replace('"', '').split(',')]
+            return [item for item in items if item and item.lower() not in ('nan', 'none')]
+
+        df_work['genres_list'] = df_work['genres'].apply(_clean_genres)
+
+    if 'vote_average_imputed' not in df_work.columns:
+        mean_vote = df_work['vote_average'].dropna().mean()
+        if np.isnan(mean_vote):
+            mean_vote = 0.0
+        df_work['vote_average_imputed'] = df_work['vote_average'].fillna(mean_vote)
+        df_work.loc[df_work['vote_count'] == 0, 'vote_average_imputed'] = mean_vote
 
     return df_work
 
@@ -52,8 +66,21 @@ def create_eda_layout(df_preparado):
     return html.Div([
 
         html.H2("A Teoria da Cauda Longa (Head/Tail Breaks)", className="mb-4 text-primary", style={'marginTop': '40px'}),
-        html.P("Exploração visual da profunda desigualdade na distribuição de receita, votos e produção cinematográfica.", className="text-muted mb-4"),
-        
+        html.P("Exploração visual da profunda desigualdade na distribuição de receita, votos e produção cinematográfica.", className="text-muted mb-2"),
+        html.P("Aqui contamos a história por trás dos números: quem domina o mercado, quais filmes ficam na sombra e o que isso revela sobre a indústria do cinema.", className="text-muted mb-4"),
+
+        dbc.Card([
+            dbc.CardBody([
+                html.H5("O que vamos responder", className="card-title"),
+                html.Ul([
+                    html.Li("Por que poucos filmes concentram tanta receita e atenção?"),
+                    html.Li("Como os filmes da 'Head' e da 'Tail' se comportam em termos de notas e influência geográfica?"),
+                    html.Li("Quais gêneros aparecem mais no mainstream e quais se mantêm na cauda de audiência?"),
+                ]),
+                html.P("Use os filtros para ajustar a história ao período e aos gêneros que quer explorar.", className="mb-0 text-muted small")
+            ])
+        ], className="mb-4 shadow-sm"),
+
         dbc.Card([
             dbc.CardBody([
                 dbc.Row([
@@ -80,6 +107,8 @@ def create_eda_layout(df_preparado):
                 ])
             ])
         ], className="mb-5 shadow-sm"),
+
+        html.Div(id='insights-resumo', className='mb-4'),
 
         dbc.Row([
             dbc.Col([
@@ -137,7 +166,7 @@ def create_eda_layout(df_preparado):
                 dcc.Loading(dcc.Graph(id='grafico-ht-qualidade'))
             ], width=12)
         ], className="mb-5"),
-    ], style={"marginLeft": "18rem", "marginRight": "2rem", "paddingTop": "1rem"})
+    ], style={"marginLeft": "12rem", "marginRight": "2rem", "paddingTop": "1rem"})
 
 def register_eda_callbacks(app, df_preparado):
     if 'release_year' not in df_preparado.columns:
@@ -185,7 +214,8 @@ def register_eda_callbacks(app, df_preparado):
          Output('grafico-ht-qualidade', 'figure'),
          Output('grafico-geo-monopolio', 'figure'),     
          Output('grafico-gen-mainstream', 'figure'),    
-         Output('grafico-gen-tail', 'figure')],         
+         Output('grafico-gen-tail', 'figure'),
+         Output('insights-resumo', 'children')],         
         [Input('filtro-ano', 'value'),
          Input('filtro-genero', 'value')] 
     )
@@ -198,12 +228,18 @@ def register_eda_callbacks(app, df_preparado):
             df_filtrado = df_filtrado[(df_filtrado['release_year'] >= ano_min) & (df_filtrado['release_year'] <= ano_max)]
             
         if generos_selecionados:
-            pattern = '|'.join(generos_selecionados)
-            df_filtrado = df_filtrado[df_filtrado['genres'].str.contains(pattern, case=False, na=False)]
+            df_filtrado = df_filtrado[df_filtrado['primeiro_genero'].isin(generos_selecionados)]
             
         vazio = go.Figure().update_layout(title="Sem dados para estes filtros")
         if df_filtrado.empty:
-            return vazio, vazio, vazio, vazio, vazio, vazio
+            info_vazio = dbc.Card(
+                dbc.CardBody([
+                    html.H5("Sem dados para estes filtros", className="card-title"),
+                    html.P("Ajuste o intervalo de anos ou escolha outros gêneros para visualizar insights relevantes.", className="mb-0 text-muted small")
+                ]),
+                className="mb-4 shadow-sm"
+            )
+            return vazio, vazio, vazio, vazio, vazio, vazio, info_vazio
 
         df_rev = df_filtrado[df_filtrado['revenue'] > 0].sort_values(by='revenue', ascending=False).reset_index(drop=True)
         if not df_rev.empty:
@@ -246,15 +282,6 @@ def register_eda_callbacks(app, df_preparado):
             media_v_filt = df_votes_filt['vote_count'].mean()
             corte_index_filt = len(df_votes_filt[df_votes_filt['vote_count'] > media_v_filt])
             
-            notas_disponiveis = df_votes_filt['vote_average'].values
-            mask_zero = df_boxplot['vote_count'] == 0
-            num_zeros = mask_zero.sum()
-            df_boxplot['vote_average_imputed'] = df_boxplot['vote_average']
-            
-            if num_zeros > 0 and len(notas_disponiveis) > 0:
-                notas_imputadas = np.random.choice(notas_disponiveis, size=num_zeros)
-                df_boxplot.loc[mask_zero, 'vote_average_imputed'] = notas_imputadas
-                
             df_boxplot['Segmento'] = np.where(df_boxplot.index < corte_index_filt, 'Mainstream (Head)', 'Alternativo (Tail)')
             
             fig_qualidade = px.box(
@@ -276,9 +303,7 @@ def register_eda_callbacks(app, df_preparado):
             segment_counts = df_geo_filtered['Segmento'].value_counts()
             country_segment_counts = df_geo_filtered.groupby(['Segmento', 'primeiro_pais']).size().reset_index(name='count')
             
-            country_segment_counts['percentage'] = country_segment_counts.apply(
-                lambda row: (row['count'] / segment_counts[row['Segmento']]) * 100 if row['Segmento'] in segment_counts else 0, axis=1
-            )
+            country_segment_counts['percentage'] = country_segment_counts['count'] / country_segment_counts['Segmento'].map(segment_counts) * 100
 
             fig_geo = px.bar(
                 country_segment_counts, x='primeiro_pais', y='percentage', color='Segmento', barmode='group',
@@ -313,4 +338,23 @@ def register_eda_callbacks(app, df_preparado):
             fig_gen_main = go.Figure()
             fig_gen_tail = go.Figure()
 
-        return fig_ht_rev, fig_comp, fig_qualidade, fig_geo, fig_gen_main, fig_gen_tail
+        top_head_genre = df_gen_main['Genre'].iloc[-1] if not df_gen_main.empty else 'N/A'
+        top_tail_genre = df_gen_tail['Genre'].iloc[-1] if not df_gen_tail.empty else 'N/A'
+        top_country = df_geo_filtered['primeiro_pais'].value_counts().idxmax() if not df_geo_filtered.empty else 'N/A'
+        total_filmes = len(df_filtrado)
+        pct_filmes_head = pct_filmes_head if 'pct_filmes_head' in locals() else 0.0
+        pct_receita_head = pct_receita_head if 'pct_receita_head' in locals() else 0.0
+
+        insights_children = dbc.Card(
+            dbc.CardBody([
+                html.H5("Insights do Recorte Atual", className="card-title"),
+                html.P(f"A análise atual considera {total_filmes:,} filmes entre {anos_selecionados[0]} e {anos_selecionados[1]}.", className="mb-2"),
+                html.Ul([
+                    html.Li(f"A 'Head' concentra {pct_receita_head:.1f}% da receita total, apesar de representar apenas {pct_filmes_head:.1f}% dos filmes."),
+                    html.Li(f"O país mais frequente entre os filmes de maior atenção é {top_country}."),
+                ]),
+            ]),
+            className="mb-4 shadow-sm"
+        )
+
+        return fig_ht_rev, fig_comp, fig_qualidade, fig_geo, fig_gen_main, fig_gen_tail, insights_children
