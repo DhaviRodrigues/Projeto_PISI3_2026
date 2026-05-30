@@ -1,12 +1,20 @@
 import pandas as pd
 from pathlib import Path
-from dash import dcc, html, Input, Output, dash_table
+from dash import dcc, html, Input, Output, dash_table, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
+import numpy as np
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
+
+CLUSTER_NAMES = {
+    0: "Cluster 0 - Grandes Blockbusters",
+    1: "Cluster 1 - Mercado Intermediário",
+    2: "Cluster 2 - Cinema Independente",
+    3: "Cluster 3 - Baixo Orçamento"
+}
 
 try:
     df_result = pd.read_parquet(DATA_PATH)
@@ -46,24 +54,49 @@ def create_cluster_layout():
                 dbc.Card([
                     dbc.CardHeader("Resumo Estatístico Original"),
                     dbc.CardBody(id="tabela-medias-cluster")
-                ], className="shadow-sm h-100")
-            ], width=5),
-            
+                ], className="shadow-sm mb-4")
+            ], width=12)
+        ]),
+
+        dbc.Row([  
             dbc.Col([
                 dbc.Card([
                     dbc.CardHeader([
                         "Explorador de Filmes por Cluster ",
                         dcc.Dropdown(
                             id='dropdown-cluster-selector',
-                            options=[{'label': f"Cluster {v}", 'value': v} for v in clusters_unicos],
+                            options=[{'label': CLUSTER_NAMES.get(v, f"Cluster {v}"), 'value': v} for v in clusters_unicos],
                             value=clusters_unicos[0] if clusters_unicos else None,
                             clearable=False,
-                            style={"width": "280px", "float": "right", "color": "black"}
+                            style={"width": "350px", "float": "right", "color": "black"}
                         )
                     ]),
                     dbc.CardBody(id="tabela-filmes-filtrados")
-                ], className="shadow-sm h-100")
-            ], width=7)
+                ], className="shadow-sm mb-4")
+            ], width=12)
+        ]),
+
+        dbc.Row([
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardHeader("Sistema de Recomendação Híbrido (K-Means e DBSCAN)", className="fw-bold bg-primary text-white"),
+                    dbc.CardBody([
+                        html.P("Digite o nome exato de um filme (em inglês) para buscar obras similares:"),
+                        dbc.Row([
+                            dbc.Col(
+                                dbc.Input(id="input-movie-title", type="text", placeholder="Ex: The Matrix, Inception, Titanic..."), 
+                                width=9
+                            ),
+                            dbc.Col(
+                                dbc.Button("Recomendar", id="btn-recommend", color="success", className="w-100"), 
+                                width=3
+                            )
+                        ]),
+                        html.Hr(),
+                        html.Div(id="recommendation-output", className="mt-3")
+                    ])
+                ], className="shadow-sm mb-4")
+            ], width=12)
         ])
     ], style={"marginLeft": "18rem", "marginRight": "2rem", "padding": "2rem"})
 
@@ -81,14 +114,15 @@ def register_cluster_callbacks(app):
 
         colunas_analise = ['popularity', 'vote_average', 'vote_count', 'budget', 'runtime', 'release_year']
         df_perfil = df_result.groupby('Cluster')[colunas_analise].mean().reset_index()
-        df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Total Votos', 'Orçamento', 'Duração (min)', 'Ano Lançamento']
+        df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento', 'Duração (min)', 'Ano Lançamento']
         df_perfil = df_perfil.sort_values('Cluster')
         
-        df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Total Votos', 'Orçamento']].copy()
+        df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento']].copy()
+        df_tabela_show['Cluster'] = df_tabela_show['Cluster'].map(CLUSTER_NAMES)
         df_tabela_show['Orçamento'] = df_tabela_show['Orçamento'].apply(lambda x: f"${x/1e6:.1f}M" if x > 0 else "$0.0M")
         df_tabela_show['Popularidade'] = df_tabela_show['Popularidade'].round(1)
         df_tabela_show['Nota Média'] = df_tabela_show['Nota Média'].round(2)
-        df_tabela_show['Total Votos'] = df_tabela_show['Total Votos'].round(0)
+        df_tabela_show['Média de Votos'] = df_tabela_show['Média de Votos'].round(0)
 
         tabela = dbc.Table.from_dataframe(df_tabela_show, striped=True, bordered=True, hover=True)
 
@@ -101,7 +135,7 @@ def register_cluster_callbacks(app):
         sampled_df = df_result.loc[sampled_indices].reset_index(drop=True)
         
 
-        sampled_df['Cluster_Cat'] = "Cluster " + sampled_df['Cluster'].astype(str)
+        sampled_df['Cluster_Cat'] = sampled_df['Cluster'].map(CLUSTER_NAMES)
 
         fig = px.scatter(
             sampled_df,
@@ -113,7 +147,7 @@ def register_cluster_callbacks(app):
             labels={
                 'UMAP_1': 'Componente UMAP 1', 
                 'UMAP_2': 'Componente UMAP 2',
-                'Cluster_Cat': 'Cluster'
+                'Cluster_Cat': 'Perfil de Mercado'
             },
             color_discrete_sequence=px.colors.qualitative.G10
         )
@@ -149,3 +183,71 @@ def register_cluster_callbacks(app):
             style_cell={'textAlign': 'left', 'padding': '10px'},
             style_header={'backgroundColor': '#f8f9fa', 'fontWeight': 'bold'}
         )
+    
+    @app.callback(
+        Output("recommendation-output", "children"),
+        Input("btn-recommend", "n_clicks"),
+        State("input-movie-title", "value")
+    )
+    def generate_recommendations(n_clicks, titulo):
+        if not n_clicks or not titulo:
+            return html.Div()
+
+        filme_exato = df_result[df_result['title'].str.lower() == titulo.lower()]
+        
+        if filme_exato.empty:
+            return html.Div(f"Não encontramos o filme '{titulo}'. Verifique a ortografia (nome em inglês).", className="text-danger fw-bold")
+        
+        filme_alvo = filme_exato.iloc[0]
+        nome_oficial = filme_alvo['title']
+
+        x_alvo = filme_alvo['UMAP_1']
+        y_alvo = filme_alvo['UMAP_2']
+        
+        cluster_k = filme_alvo['Cluster']
+        cluster_db = filme_alvo['cluster_dbscan']
+        
+        recomendacoes_finais = []
+        origens = []
+
+        def buscar_vizinhos(df_filtrado, limite):
+            distancias = np.sqrt((df_filtrado['UMAP_1'] - x_alvo)**2 + (df_filtrado['UMAP_2'] - y_alvo)**2)
+            df_temp = df_filtrado.copy()
+            df_temp['distancia_real'] = distancias
+            return df_temp.sort_values('distancia_real', ascending=True).head(limite)['title'].tolist()
+
+        if cluster_db != -1:
+            df_dbscan = df_result[(df_result['cluster_dbscan'] == cluster_db) & (df_result['title'] != nome_oficial)]
+            recs_dbscan = buscar_vizinhos(df_dbscan, 5)
+            recomendacoes_finais.extend(recs_dbscan)
+            origens.extend(["DBSCAN"] * len(recs_dbscan))
+
+        vagas_sobrando = 5 - len(recomendacoes_finais)
+        
+        if vagas_sobrando > 0:
+            df_kmeans = df_result[
+                (df_result['Cluster'] == cluster_k) & 
+                (df_result['title'] != nome_oficial) & 
+                (~df_result['title'].isin(recomendacoes_finais))
+            ]
+            recs_kmeans = buscar_vizinhos(df_kmeans, vagas_sobrando)
+            recomendacoes_finais.extend(recs_kmeans)
+            origens.extend(["K-Means"] * len(recs_kmeans))
+
+        if not recomendacoes_finais:
+            return html.Div("Nenhum filme similar encontrado.", className="text-warning")
+
+        list_items = []
+        for filme, origem in zip(recomendacoes_finais, origens):
+            badge_color = "success" if origem == "DBSCAN" else "info"
+            list_items.append(
+                dbc.ListGroupItem([
+                    html.Span(filme, className="fw-bold"),
+                    dbc.Badge(f"via {origem}", color=badge_color, className="ms-2")
+                ], className="d-flex justify-content-between align-items-center")
+            )
+            
+        return html.Div([
+            html.H5(f"Recomendações por Similaridade Real para: {nome_oficial}", className="text-primary mb-3 fw-bold"),
+            dbc.ListGroup(list_items, className="shadow-sm")
+        ])
