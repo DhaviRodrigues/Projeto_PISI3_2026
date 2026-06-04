@@ -56,7 +56,7 @@ sidebar = html.Div(
                 dbc.NavLink("Clusterização", href="/cluster", active="exact"), 
                 dbc.NavLink("Correlação", href="/correlacao", active="exact"),
                 dbc.NavLink("Regressão", href="/regression_page", active="exact"),
-                dbc.NavLink("Classificação (LightGBM)", href="/classificacao", active="exact"),
+                dbc.NavLink("Classificação", href="/classificacao", active="exact"),
                 dbc.NavLink("Regressão Logística", href="/logistica", active="exact"),  
 
             ],
