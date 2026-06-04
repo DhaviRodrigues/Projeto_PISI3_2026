@@ -4,13 +4,23 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html, dash_table, Input, Output
 import dash
 import dash_bootstrap_components as dbc
+from pathlib import Path
 import eda
 import classificacao_page 
 import regression_page      
 import cluster_page  
 import correlacao_page
+import logistic_regression_page
 
-df = pd.read_parquet('Imdb_Movie_Dataset.parquet')
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
+
+try:
+    df = pd.read_parquet(DATA_PATH)
+except FileNotFoundError:
+    raise FileNotFoundError(f"Arquivo de dados não encontrado em: {DATA_PATH}\nVerifique se o arquivo existe ou se o caminho está correto.")
+
+df_preparado = eda.preparar_dados(df)
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
 total_colunas = df.shape[1]
@@ -47,6 +57,8 @@ sidebar = html.Div(
                 dbc.NavLink("Correlação", href="/correlacao", active="exact"),
                 dbc.NavLink("Regressão", href="/regression_page", active="exact"),
                 dbc.NavLink("Classificação", href="/classificacao", active="exact"),
+                dbc.NavLink("Regressão Logística", href="/logistica", active="exact"),  
+
             ],
             vertical=True,
             pills=True,
@@ -113,7 +125,7 @@ def render_page_content(pathname):
     if pathname == "/":
         return content_home
     elif pathname == "/eda":
-        return eda.create_eda_layout(df)
+        return eda.create_eda_layout(df_preparado)
     elif pathname == "/regression_page":
         return regression_page.create_regression_layout()
     elif pathname == "/classificacao":                     
@@ -122,6 +134,8 @@ def render_page_content(pathname):
         return cluster_page.create_cluster_layout()
     elif pathname == "/correlacao":
         return correlacao_page.create_correlation_layout()
+    elif pathname == "/logistica":                                             
+        return logistic_regression_page.create_logistic_layout()
 
     return html.Div(
         [
@@ -132,11 +146,12 @@ def render_page_content(pathname):
         className="p-3 bg-light rounded-3",
     )
 
-eda.register_eda_callbacks(app, df)
+eda.register_eda_callbacks(app, df_preparado)
 regression_page.register_regression_callbacks(app)
 classificacao_page.register_lgbm_callbacks(app)  
 cluster_page.register_cluster_callbacks(app)
 correlacao_page.register_correlation_callbacks(app, df)
+logistic_regression_page.register_logistic_callbacks(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
