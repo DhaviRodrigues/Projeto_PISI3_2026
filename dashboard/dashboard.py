@@ -27,7 +27,12 @@ total_colunas = df.shape[1]
 tamanho_memoria = f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
 
 
+# --- CONFIGURAÇÃO DO DASH ---
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
+
+# VEJA AQUI: Linha inserida no local exato para o deploy no Render
+server = app.server
+
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -36,8 +41,7 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
-    "backgroundColor": ""
-    "#f8f9fa",
+    "backgroundColor": "#f8f9fa",
 }
 
 CONTENT_STYLE = {
@@ -58,7 +62,6 @@ sidebar = html.Div(
                 dbc.NavLink("Regressão", href="/regression_page", active="exact"),
                 dbc.NavLink("Classificação", href="/classificacao", active="exact"),
                 dbc.NavLink("Regressão Logística", href="/logistica", active="exact"),  
-
             ],
             vertical=True,
             pills=True,
