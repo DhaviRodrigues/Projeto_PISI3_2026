@@ -1,0 +1,73 @@
+[33m54f10a7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Consertando erro de entrypoint
+[33mf4eecb5[m Configurar deploy no Vercel
+[33me6b3526[m Configuração para deploy no Vercel
+[33mbec36ba[m correção do requeriments.txt
+[33m92e4391[m Merge pull request #16 from DhaviRodrigues/dev-nicacio
+[33mfd7f171[m Merge branch 'main' into dev-nicacio
+[33m90d1e75[m[33m ([m[1;31morigin/dev-nicacio[m[33m, [m[1;32mdev-nicacio[m[33m)[m adição do requirements.txt
+[33m1e5b95a[m Merge pull request #15 from DhaviRodrigues/melhorando-classificacao
+[33mfee4afc[m[33m ([m[1;31morigin/melhorando-classificacao[m[33m)[m Merge branch 'main' into melhorando-classificacao
+[33ma18f760[m Organizando a seção de Classificação e removendo erros de data leakege, mudando também o dashboard referente a essa parte
+[33m6c2a680[m Merge pull request #14 from DhaviRodrigues/feat/regression-algorithm
+[33m4fd6b2d[m[33m ([m[1;31morigin/feat/regression-algorithm[m[33m)[m feat:add logistic_regression to dashboard view andfix eda null validation
+[33m1d50220[m feat/add logistic_regression_page
+[33m36565de[m adicionando o SHAP na clusterização
+[33m7721e7f[m[33m ([m[1;31morigin/dev-joao[m[33m)[m adicionando o SHAP na clusterização
+[33mf115894[m metodo cotovelo adicionado
+[33m59123a0[m Merge pull request #12 from DhaviRodrigues/dev-nicacio
+[33ma92dfd8[m Melhoria no Storytelling da EDA
+[33mea72fb0[m Merge pull request #11 from DhaviRodrigues/dev-joao
+[33m627c00d[m chore: limpando outputs do notebook para reduzir tamanho do PR
+[33m8b4666a[m implementa recomendação híbrida(kmeans e dbscan
+[33me19088c[m adiciona interpretação dos clusters e corrige a sobreposição de layout
+[33maa5167d[m Merge branch 'main' of https://github.com/DhaviRodrigues/Projeto_PISI3_2026
+[33m5a3b826[m correção clusterização
+[33mace4047[m Merge pull request #10 from DhaviRodrigues/dev-nicacio
+[33mc4b3db5[m correção de espaçamento na eda
+[33m8f66a60[m correção regression_page
+[33m3823f29[m Merge pull request #9 from DhaviRodrigues/dev-nicacio
+[33m8c4ff95[m  reformulação do EDA
+[33mc474c42[m correções regressão xgboost e random forest
+[33m79eb2c4[m Correções gráfico de correlação
+[33mc45753d[m Merge pull request #8 from DhaviRodrigues/classificacao
+[33mab5057f[m[33m ([m[1;31morigin/classificacao[m[33m)[m Merge branch 'main' into classificacao
+[33m1e11de5[m adiciona pagina de classificacao com graficos analiticos
+[33mfdc172f[m aplica regra de pareto no limiar de decisao do modelo
+[33mea239b6[m Merge pull request #7 from DhaviRodrigues/dev-joao
+[33mbd1de29[m Merge branch 'main' into dev-joao
+[33m6b5a7b6[m fix: sincroniza logica de medias com o notebook e atualiza grafico
+[33m806c1ef[m Merge pull request #6 from DhaviRodrigues/feat/regression-algorithm
+[33mee19eb7[m feat:add logistic-regression algorithm to logistic regression directory
+[33m0398e63[m aplica SMOTE para gerar dados sintéticos junto com o lgbm
+[33m8367d8a[m aplica Grid Search no LightGBM, padroniza visualização e exporta modelo campeão
+[33mc9b40a4[m adiciona modelo KNN para classificação
+[33md244080[m feat: traduz rótulos da matriz de confusão para métricas de negócio na Regressão Logística
+[33m5202e3f[m Criado usando o Colab
+[33ma6db7a3[m tela e lógica da página de correlação
+[33m2ea36d0[m feat: implementação do baseline de clusterização e refinamento de interface
+[33me495520[m Implementação inicial do modelo de classificação LightGBM (Sucesso de Nicho)
+[33m89a4dc2[m Merge pull request #5 from DhaviRodrigues/random-forest
+[33mafcc1e8[m[33m ([m[1;31morigin/random-forest[m[33m)[m modelos de predição para runtime e vote_average usando XGBoost e Random Forest
+[33md5e9c56[m Merge pull request #4 from DhaviRodrigues/dashboard
+[33m848d20c[m[33m ([m[1;31morigin/dashboard[m[33m)[m Adição da Aba de EDA
+[33me3f4542[m tela inicial do dashboard
+[33m5092220[m correções dos gráficos antigos e melhorias visuais dos gráficos do artigo
+[33md165f96[m arrumando a estrutura do repositório
+[33mf3a4f6b[m Análise sobre Países e Média de Avaliações
+[33m14a035e[m Merge pull request #3 from DhaviRodrigues/dev-joao
+[33mda2b8c2[m Análise sobre os países
+[33ma242358[m Merge pull request #2 from DhaviRodrigues/dev_lucas
+[33m7b3241f[m[33m ([m[1;31morigin/dev_lucas[m[33m)[m feat:Add gender distributio graph
+[33ma81254a[m analise exploratoria com metodo head/tail breaks
+[33md5420f3[m Merge branch 'main' of https://github.com/DhaviRodrigues/Projeto_PISI3_2026
+[33m5285e77[m Adição analise exploratória
+[33m11a02a8[m Limpeza final
+[33m7668bb3[m gráficos finais
+[33ma553ef3[m Delete PISI3_analise_exploratoria.ipynb
+[33mae21bd2[m Rename PISI3 Análise Exploratória.ipynb to PISI3_analise_exploratoria.ipynb
+[33m53b773b[m Delete PISI3_Análise_Exploratória.ipynb
+[33m29cf376[m Gráficos 1VA
+[33m3db7457[m Analise_Exploratoria/Filtragem_Dados-Carlos
+[33m3fc9ba9[m Merge pull request #1 from DhaviRodrigues/dev_dhavi
+[33m59606e8[m[33m ([m[1;31morigin/dev_dhavi[m[33m)[m Adição analise_exploratoria e clusterização
+[33m34e26f8[m[33m ([m[1;31mupstream/main[m[33m, [m[1;31mupstream/dev_dhavi[m[33m, [m[1;31mupstream/HEAD[m[33m)[m Initial commit
