@@ -27,8 +27,7 @@ total_colunas = df.shape[1]
 tamanho_memoria = f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
 
 
-# --- CONFIGURAÇÃO DO DASH ---
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
 
 server = app.server
