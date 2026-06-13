@@ -8,7 +8,7 @@ RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
-    PYTHONPATH=/home/user/app
+    PYTHONPATH=/home/user/app:/home/user/app/dashboard
 
 WORKDIR /home/user/app
 
