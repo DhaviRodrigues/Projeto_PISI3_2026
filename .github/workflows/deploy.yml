@@ -23,9 +23,11 @@ jobs:
           git config user.email "ci@github.com"
           git config user.name "GitHub Actions"
 
-      - name: Pull LFS objects
+      - name: Pull LFS objects (fetch specific paths)
         run: |
-          git lfs fetch
+          # ensure attributes are read from HEAD and fetch tracked objects
+          export GIT_ATTR_SOURCE=HEAD || true
+          git lfs fetch origin --include="clusterizacao/**"
           git lfs checkout
 
       - name: Push para o Hugging Face
