@@ -4,7 +4,8 @@ FROM python:3.11-slim
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONPATH=/home/user/app/dashboard
 
 WORKDIR /home/user/app
 
@@ -12,7 +13,7 @@ WORKDIR /home/user/app
 COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Copia o restante do código t
+# Copia o restante do código
 COPY --chown=user . .
 
 EXPOSE 7860
