@@ -2,33 +2,31 @@ name: Sync to Hugging Face Spaces
 
 on:
   push:
-    branches: [ main,deploy ]
+    branches: [ main, deploy ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Instalar Git LFS
+        run: git lfs install
+
       - name: Checkout do Código
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
+          lfs: false
 
-      - name: Instalar Git LFS
-        run: git lfs install
+      - name: Baixar objetos LFS do GitHub
+        run: |
+          git lfs fetch --all origin
+          git lfs checkout
 
       - name: Configurar identidade do Git
         run: |
           git config user.email "ci@github.com"
           git config user.name "GitHub Actions"
-
-      - name: Pull LFS objects (fetch specific paths)
-        run: |
-          # ensure attributes are read from HEAD and fetch tracked objects
-          export GIT_ATTR_SOURCE=HEAD || true
-          git lfs fetch origin --include="clusterizacao/**"
-          git lfs checkout
 
       - name: Push para o Hugging Face
         env:
