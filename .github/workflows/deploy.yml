@@ -24,7 +24,9 @@ jobs:
           git config user.name "GitHub Actions"
 
       - name: Pull LFS objects
-        run: git lfs pull --all
+        run: |
+          git lfs fetch
+          git lfs checkout
 
       - name: Push para o Hugging Face
         env:
