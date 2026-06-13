@@ -15,6 +15,9 @@ jobs:
           fetch-depth: 0
           lfs: true
 
+      - name: Instalar Git LFS
+        run: git lfs install
+
       - name: Configurar identidade do Git
         run: |
           git config user.email "ci@github.com"
