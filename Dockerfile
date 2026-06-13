@@ -1,11 +1,14 @@
 FROM python:3.11-slim
 
+# Dependência do sistema para LightGBM
+RUN apt-get update && apt-get install -y libgomp1 && rm -rf /var/lib/apt/lists/*
+
 # Cria usuário não-root (exigido pelo Hugging Face)
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
-    PYTHONPATH=/home/user/app/dashboard
+    PYTHONPATH=/home/user/app
 
 WORKDIR /home/user/app
 
