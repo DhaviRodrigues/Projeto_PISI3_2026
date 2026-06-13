@@ -12,7 +12,7 @@ WORKDIR /home/user/app
 COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Copia o restante do código
+# Copia o restante do código t
 COPY --chown=user . .
 
 EXPOSE 7860
