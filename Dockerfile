@@ -6,7 +6,7 @@ RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
-    PYTHONPATH=/home/user/app/dashboard
+    PYTHONPATH=/home/user/app:/home/user/app/dashboard
 
 WORKDIR /home/user/app
 
@@ -17,4 +17,4 @@ COPY --chown=user . .
 
 EXPOSE 7860
 
-CMD ["gunicorn", "-b", "0.0.0.0:7860", "--workers", "2", "--timeout", "120", "--chdir", "/home/user/app/dashboard", "dashboard:server"]
+CMD ["gunicorn", "-b", "0.0.0.0:7860", "--workers", "2", "--timeout", "120", "dashboard.dashboard:server"]

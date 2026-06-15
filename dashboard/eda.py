@@ -59,8 +59,8 @@ def create_eda_layout(df_preparado):
     
     ano_inicio_padrao = max(min_ano, 2000)
     ano_fim_padrao = min(max_ano, 2030)
-
-    generos_disponiveis = sorted(df_preparado[df_preparado['primeiro_genero'] != 'Desconhecido']['primeiro_genero'].dropna().unique())
+    
+    generos_disponiveis = sorted(df_preparado[df_preparado['primeiro_genero'] != 'Desconhecido']['primeiro_genero'].unique())
     
 
     return html.Div([
