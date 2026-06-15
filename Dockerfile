@@ -7,6 +7,7 @@ USER user
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
     PYTHONPATH=/home/user/app:/home/user/app/dashboard
+# RUN echo "rebuild cache"
 
 WORKDIR /home/user/app
 
