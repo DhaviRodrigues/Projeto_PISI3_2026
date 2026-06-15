@@ -31,6 +31,7 @@ SIDEBAR_STYLE = {
     "padding": "2rem 1rem",
     "backgroundColor": "#f8f9fa",
 
+
 }
 
 CONTENT_STYLE = {
