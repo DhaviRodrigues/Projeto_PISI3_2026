@@ -7,7 +7,7 @@ Siga o passo a passo abaixo para executar o projeto corretamente.
 ## 📥 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
+git clone https://github.com/DhaviRodrigues/Projeto_PISI3_2026.git
 cd seu-repositorio
 ```
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 ## 📊 4. Baixar o dataset
 
 👉 Link do Kaggle:
-https://www.kaggle.com/SEU-LINK-AQUI
+https://www.kaggle.com/datasets/anandshaw2001/imdb-data
 
 ### Passos:
 
