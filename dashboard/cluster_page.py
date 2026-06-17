@@ -5,15 +5,18 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+import pickle
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
+SHAP_VALUE_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'shap' / 'rf_clustering_shap_data.pkl'
+
 
 CLUSTER_NAMES = {
     0: "Cluster 0 - Grandes Blockbusters",
     1: "Cluster 1 - Mercado Intermediário",
     2: "Cluster 2 - Cinema Independente",
-    3: "Cluster 3 - Baixo Orçamento"
+    3: "Cluster 3 - Baixo Orçamento Médio"
 }
 
 try:
@@ -54,6 +57,38 @@ def create_cluster_layout():
                 dbc.Card([
                     dbc.CardHeader("Resumo Estatístico Original"),
                     dbc.CardBody(id="tabela-medias-cluster")
+                ], className="shadow-sm mb-4")
+            ], width=12)
+        ]),
+
+        dbc.Row([
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardHeader([
+                        dbc.Row([
+                            dbc.Col(html.Span("Explicabilidade SHAP", className="fw-bold"), width=7),
+                            dbc.Col(
+                                dcc.Dropdown(
+                                    id='dropdown-shap-selector',
+                                    options=[{'label': CLUSTER_NAMES.get(v, f"Cluster {v}"), 'value': v} for v in clusters_unicos],
+                                    value=clusters_unicos[0] if clusters_unicos else None,
+                                    clearable=False,
+                                    style={"color": "black"}
+                                ), width=5
+                            )
+                        ], align="center")
+                    ]),
+                    dbc.CardBody([
+                        html.P("Esta análise mostra quais características o modelo considerou mais importantes para definir este grupo específico."),
+                        dbc.Tabs([
+                            dbc.Tab(label="Importância das Features", tab_id="tab-shap-bar", children=[
+                                dcc.Graph(id="grafico-shap-cluster")
+                            ]),
+                            # dbc.Tab(label="Distribuição de Impacto", tab_id="tab-shap-summary", children=[
+                            #     dcc.Graph(id="grafico-shap-summary-cluster")
+                            # ]),
+                        ], id="tabs-shap-cluster", active_tab="tab-shap-bar")
+                    ])
                 ], className="shadow-sm mb-4")
             ], width=12)
         ]),
@@ -114,12 +149,12 @@ def register_cluster_callbacks(app):
 
         colunas_analise = ['popularity', 'vote_average', 'vote_count', 'budget', 'runtime', 'release_year']
         df_perfil = df_result.groupby('Cluster')[colunas_analise].mean().reset_index()
-        df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento', 'Duração (min)', 'Ano Lançamento']
+        df_perfil.columns = ['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento Médio', 'Duração (min)', 'Ano Lançamento']
         df_perfil = df_perfil.sort_values('Cluster')
         
-        df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento']].copy()
+        df_tabela_show = df_perfil[['Cluster', 'Popularidade', 'Nota Média', 'Média de Votos', 'Orçamento Médio']].copy()
         df_tabela_show['Cluster'] = df_tabela_show['Cluster'].map(CLUSTER_NAMES)
-        df_tabela_show['Orçamento'] = df_tabela_show['Orçamento'].apply(lambda x: f"${x/1e6:.1f}M" if x > 0 else "$0.0M")
+        df_tabela_show['Orçamento Médio'] = df_tabela_show['Orçamento Médio'].apply(lambda x: f"${x/1e6:.1f}M" if x > 0 else "$0.0M")
         df_tabela_show['Popularidade'] = df_tabela_show['Popularidade'].round(1)
         df_tabela_show['Nota Média'] = df_tabela_show['Nota Média'].round(2)
         df_tabela_show['Média de Votos'] = df_tabela_show['Média de Votos'].round(0)
@@ -251,3 +286,56 @@ def register_cluster_callbacks(app):
             html.H5(f"Recomendações por Similaridade Real para: {nome_oficial}", className="text-primary mb-3 fw-bold"),
             dbc.ListGroup(list_items, className="shadow-sm")
         ])
+    
+    @app.callback(
+        [Output("grafico-shap-cluster", "figure")],
+        [Input("dropdown-shap-selector", "value")] 
+    )
+    def update_shap_charts(cluster_selecionado):
+        if cluster_selecionado is None:
+            return [go.Figure()]
+
+        try:
+            with open(SHAP_VALUE_PATH, 'rb') as f:
+                data = pickle.load(f)
+            
+            features = data['features']
+            shap_values_all_clusters = data['shap_values'] 
+
+            shap_matrix = shap_values_all_clusters[:, :, int(cluster_selecionado)]
+
+            mean_abs_shap = np.abs(shap_matrix).mean(axis=0)
+            df_shap = pd.DataFrame({'Feature': features, 'Importance': mean_abs_shap})
+            df_top = df_shap.sort_values(by='Importance', ascending=True).tail(12)
+
+            fig_bar = px.bar(df_top, x='Importance', y='Feature', orientation='h',
+                            title=f"O que define o {CLUSTER_NAMES[cluster_selecionado]}?")
+            fig_bar.update_layout(
+                template="plotly_white", 
+                margin=dict(l=200, r=20, t=40, b=20)
+            )
+
+            # fig_sum = go.Figure()
+            # for i, feat in enumerate(df_top['Feature'].tail(8)): 
+            #     idx_feat = features.index(feat)
+            #     fig_sum.add_trace(go.Box(
+            #         x=shap_matrix[:, idx_feat],
+            #         name=feat,
+            #         boxpoints='all',
+            #         jitter=0.5,
+            #         whiskerwidth=0.2,
+            #         marker_size=3,
+            #         line_width=1
+            #     ))
+            # fig_sum.update_layout(
+            #     title="Distribuição do Impacto por Feature",
+            #     template="plotly_white", 
+            #     showlegend=False,
+            #     xaxis_title="Impacto no Modelo (<- Menos provável | Mais provável ->)"
+            # )
+
+            return [fig_bar]
+
+        except Exception as e:
+            print(f"Erro ao carregar dados SHAP: {e}")
+            return [go.Figure()]

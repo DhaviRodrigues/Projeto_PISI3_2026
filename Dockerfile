@@ -1,21 +1,18 @@
+# Usa uma imagem oficial do Python levinha
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y libgomp1 && rm -rf /var/lib/apt/lists/*
+# Define a pasta de trabalho dentro do servidor
+WORKDIR /code
 
-RUN useradd -m -u 1000 user
-USER user
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH \
-    PYTHONPATH=/home/user/app:/home/user/app/dashboard
-# RUN echo "rebuild cache"
+# Copia e instala os requisitos
+COPY ./requirements.txt /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-WORKDIR /home/user/app
+# Copia todo o resto do seu código
+COPY . .
 
-COPY --chown=user requirements.txt .
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
-
-COPY --chown=user . .
-
+# Expõe a porta 7860 (Padrão obrigatório do Hugging Face)
 EXPOSE 7860
 
-CMD ["gunicorn", "-b", "0.0.0.0:7860", "--workers", "2", "--timeout", "120", "dashboard.dashboard:server"]
+# Comando para rodar a aplicação usando o Gunicorn (lembre-se do caminho dashboard.dashboard)
+CMD ["gunicorn", "-b", "0.0.0.0:7860", "dashboard.dashboard:server"]

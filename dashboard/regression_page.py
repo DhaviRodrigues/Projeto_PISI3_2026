@@ -74,7 +74,7 @@ carregar_modelos()
 
 def carregar_paises():
     try:
-        df = pd.read_parquet(BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet')
+        df = pd.read_parquet(BASE_DIR / 'Imdb_Movie_Dataset.parquet')
         paises_unicos = set()
         
         for countries_str in df['production_countries'].dropna():

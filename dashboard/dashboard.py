@@ -4,15 +4,22 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html, dash_table, Input, Output
 import dash
 import dash_bootstrap_components as dbc
+from pathlib import Path
 import eda
 import classificacao_page 
 import regression_page      
 import cluster_page  
 import correlacao_page
-from pathlib import Path
+import logistic_regression_page
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-df = pd.read_parquet(BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet')
+DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
+
+try:
+    df = pd.read_parquet(DATA_PATH)
+except FileNotFoundError:
+    raise FileNotFoundError(f"Arquivo de dados não encontrado em: {DATA_PATH}\nVerifique se o arquivo existe ou se o caminho está correto.")
+
 df_preparado = eda.preparar_dados(df)
 
 total_linhas = f"{df.shape[0]:,}".replace(",", ".")
@@ -20,8 +27,11 @@ total_colunas = df.shape[1]
 tamanho_memoria = f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
 
 
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
+
 server = app.server
+
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -31,8 +41,6 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
     "backgroundColor": "#f8f9fa",
-
-
 }
 
 CONTENT_STYLE = {
@@ -51,7 +59,8 @@ sidebar = html.Div(
                 dbc.NavLink("Clusterização", href="/cluster", active="exact"), 
                 dbc.NavLink("Correlação", href="/correlacao", active="exact"),
                 dbc.NavLink("Regressão", href="/regression_page", active="exact"),
-                dbc.NavLink("Classificação (LightGBM)", href="/classificacao", active="exact"),
+                dbc.NavLink("Classificação", href="/classificacao", active="exact"),
+                dbc.NavLink("Regressão Logística", href="/logistica", active="exact"),  
             ],
             vertical=True,
             pills=True,
@@ -127,6 +136,8 @@ def render_page_content(pathname):
         return cluster_page.create_cluster_layout()
     elif pathname == "/correlacao":
         return correlacao_page.create_correlation_layout()
+    elif pathname == "/logistica":                                             
+        return logistic_regression_page.create_logistic_layout()
 
     return html.Div(
         [
@@ -142,6 +153,7 @@ regression_page.register_regression_callbacks(app)
 classificacao_page.register_lgbm_callbacks(app)  
 cluster_page.register_cluster_callbacks(app)
 correlacao_page.register_correlation_callbacks(app, df)
+logistic_regression_page.register_logistic_callbacks(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
