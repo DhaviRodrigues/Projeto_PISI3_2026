@@ -1,3 +1,12 @@
+
+---
+title: PISI3 Dashboard
+emoji: 🎬
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
 # 🚀 Como rodar o projeto
 
 Siga o passo a passo abaixo para executar o projeto corretamente.
