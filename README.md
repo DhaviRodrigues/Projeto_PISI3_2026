@@ -1,6 +1,6 @@
 # 🚀 Como rodar o projeto
 
-Siga os passos abaixo para configurar e executar o projeto corretamente.
+Siga o passo a passo abaixo para executar o projeto corretamente.
 
 ---
 
@@ -15,7 +15,7 @@ cd seu-repositorio
 
 ## 🐍 2. Criar e ativar ambiente virtual
 
-### Criar ambiente:
+### Criar:
 
 ```bash
 python -m venv venv
@@ -45,82 +45,95 @@ pip install -r requirements.txt
 
 ---
 
-## 📊 4. Baixar e configurar o dataset
-
-Este projeto utiliza um dataset externo, que deve ser baixado manualmente.
+## 📊 4. Baixar o dataset
 
 👉 Link do Kaggle:
 https://www.kaggle.com/SEU-LINK-AQUI
 
 ### Passos:
 
-1. Acesse o link acima
-2. Baixe o dataset
-3. Extraia os arquivos (se estiverem compactados)
-4. Coloque os arquivos dentro da pasta:
-
-```bash
-data/
-```
-
-⚠️ **Importante:**
-Certifique-se de que os arquivos estão diretamente dentro da pasta `data` e não em subpastas inesperadas.
+1. Baixe o dataset
+2. Coloque o arquivo dentro do repositório (na raiz ou onde seu notebook espera)
 
 ---
 
-## 🧹 5. Pré-processamento dos dados
+## 🧹 5. Gerar o arquivo `.parquet`
 
-Antes de rodar o projeto principal, execute a etapa de limpeza:
+A limpeza dos dados é feita via notebook.
 
-```bash
-python src/preprocessing.py
-```
-
-Essa etapa irá:
-
-* Tratar valores nulos
-* Corrigir inconsistências
-* Preparar os dados para uso
-
----
-
-## ▶️ 6. Executar o projeto
-
-Após preparar os dados, rode:
+### Caminho:
 
 ```bash
-python src/main.py
+limpeza_de_dados/conversao_parquet.ipynb
 ```
 
----
+### O que fazer:
 
-## 🧪 (Opcional) Rodar com Jupyter Notebook
-
-Se quiser explorar os dados:
+1. Abra o notebook:
 
 ```bash
 jupyter notebook
 ```
 
-Abra os arquivos dentro da pasta `notebooks/`.
+2. Navegue até:
+
+```
+limpeza_de_dados/conversao_parquet.ipynb
+```
+
+3. Execute **a célula responsável pela conversão** (ou todas, se preferir)
+
+👉 Isso irá gerar um arquivo `.parquet`
+
+---
+
+## 📁 6. Mover o arquivo `.parquet`
+
+Após gerar o arquivo:
+
+➡️ Mova o `.parquet` para a pasta:
+
+```bash
+dashboard/
+```
+
+---
+
+## ▶️ 7. Executar o dashboard
+
+Entre na pasta:
+
+```bash
+cd dashboard
+```
+
+E rode:
+
+```bash
+python dashboard.py
+```
 
 ---
 
 ## ❗ Possíveis erros comuns
 
-### Erro: módulo não encontrado
+### Arquivo `.parquet` não encontrado
 
-➡️ Certifique-se de que o ambiente virtual está ativado
-
----
-
-### Erro: arquivo não encontrado
-
-➡️ Verifique se o dataset está na pasta `data/`
+➡️ Verifique se você moveu o arquivo corretamente para a pasta `dashboard/`
 
 ---
 
-### Erro de dependências
+### Notebook não roda
+
+➡️ Certifique-se de que instalou o Jupyter:
+
+```bash
+pip install jupyter
+```
+
+---
+
+### Dependências faltando
 
 ➡️ Rode novamente:
 
@@ -130,6 +143,16 @@ pip install -r requirements.txt
 
 ---
 
-## ✅ Pronto!
+## ✅ Fluxo resumido
 
-Se tudo deu certo, o projeto deve rodar normalmente 🎉
+1. Clonar repo
+2. Instalar dependências
+3. Baixar dataset
+4. Rodar notebook (`conversao_parquet.ipynb`)
+5. Gerar `.parquet`
+6. Mover para `dashboard/`
+7. Rodar `dashboard.py`
+
+---
+
+Pronto! 🎉
