@@ -12,19 +12,40 @@ import cluster_page
 import correlacao_page
 import logistic_regression_page
 
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
+
+# try:
+#     df = pd.read_parquet(DATA_PATH)
+# except FileNotFoundError:
+#     raise FileNotFoundError(f"Arquivo de dados não encontrado em: {DATA_PATH}\nVerifique se o arquivo existe ou se o caminho está correto.")
+
+# df_preparado = eda.preparar_dados(df)
+
+# total_linhas = f"{df.shape[0]:,}".replace(",", ".")
+# total_colunas = df.shape[1]
+# tamanho_memoria = f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
+RAW_DATA_PATH = BASE_DIR / 'dataset_bruto' / 'Imdb_Movie_Dataset_Raw.parquet'
 
 try:
     df = pd.read_parquet(DATA_PATH)
 except FileNotFoundError:
     raise FileNotFoundError(f"Arquivo de dados não encontrado em: {DATA_PATH}\nVerifique se o arquivo existe ou se o caminho está correto.")
 
+try:
+    df_raw = pd.read_parquet(RAW_DATA_PATH)
+except FileNotFoundError:
+    print(f"Aviso: Dataset bruto não encontrado em {RAW_DATA_PATH}. Usando dataset filtrado na página inicial.")
+    df_raw = df
+
 df_preparado = eda.preparar_dados(df)
 
-total_linhas = f"{df.shape[0]:,}".replace(",", ".")
-total_colunas = df.shape[1]
-tamanho_memoria = f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
+total_linhas = f"{df_raw.shape[0]:,}".replace(",", ".")
+total_colunas = df_raw.shape[1]
+tamanho_memoria = f"{df_raw.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
 
 
 
