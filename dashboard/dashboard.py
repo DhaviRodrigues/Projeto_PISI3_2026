@@ -10,7 +10,6 @@ import classificacao_page
 import regression_page      
 import cluster_page  
 import correlacao_page
-import logistic_regression_page
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / 'clusterizacao' / 'models' / 'Imdb_Movie_Dataset_Clustered.parquet'
@@ -60,7 +59,6 @@ sidebar = html.Div(
                 dbc.NavLink("Correlação", href="/correlacao", active="exact"),
                 dbc.NavLink("Regressão", href="/regression_page", active="exact"),
                 dbc.NavLink("Classificação", href="/classificacao", active="exact"),
-                dbc.NavLink("Regressão Logística", href="/logistica", active="exact"),  
             ],
             vertical=True,
             pills=True,
@@ -136,8 +134,6 @@ def render_page_content(pathname):
         return cluster_page.create_cluster_layout()
     elif pathname == "/correlacao":
         return correlacao_page.create_correlation_layout()
-    elif pathname == "/logistica":                                             
-        return logistic_regression_page.create_logistic_layout()
 
     return html.Div(
         [
@@ -153,7 +149,6 @@ regression_page.register_regression_callbacks(app)
 classificacao_page.register_lgbm_callbacks(app)  
 cluster_page.register_cluster_callbacks(app)
 correlacao_page.register_correlation_callbacks(app, df)
-logistic_regression_page.register_logistic_callbacks(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
